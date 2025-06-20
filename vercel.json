@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "regions": ["sin1"],
+  "env": {
+    "VITE_API_URL": "https://eocs-competition-api.vercel.app"
+  }
+} 

@@ -1,0 +1,13 @@
+@use 'variables' as *;
+@use 'base' as *;
+
+// Components
+@use 'components/navigation';
+@use 'components/loading';
+
+// Pages
+@use 'pages/home';
+@use 'pages/login';
+@use 'pages/dashboard';
+// Competition page now uses Tailwind CSS
+@use 'pages/not-found'; 
