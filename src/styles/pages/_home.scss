@@ -1,100 +1,91 @@
 .home {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  @apply min-h-screen bg-bg-primary;
 
-  .hero {
-    text-align: center;
-    padding: 4rem 0;
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-light) 0%,
-      var(--color-primary) 100%
-    );
-    border-radius: 1rem;
-    margin-bottom: 4rem;
-    color: var(--color-text-light);
+  &-hero {
+    @apply relative py-20 overflow-hidden;
 
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      font-weight: bold;
+    &::before {
+      content: '';
+      @apply absolute inset-0 bg-egyptian-gold opacity-5;
     }
 
-    .subtitle {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      opacity: 0.9;
-    }
+    .container {
+      @apply relative mx-auto px-4;
 
-    .cta-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
+      .hero-content {
+        @apply max-w-3xl mx-auto text-center;
 
-      .btn {
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-
-        &.btn-primary {
-          background-color: var(--color-accent);
-          color: var(--color-text-light);
-
-          &:hover {
-            background-color: var(--color-accent-dark);
-          }
+        .title {
+          @apply text-4xl md:text-5xl font-bold text-egyptian-gold mb-6;
         }
 
-        &.btn-secondary {
-          background-color: transparent;
-          border: 2px solid var(--color-text-light);
-          color: var(--color-text-light);
+        .subtitle {
+          @apply text-xl text-text-secondary mb-8;
+        }
 
-          &:hover {
-            background-color: var(--color-text-light);
-            color: var(--color-primary);
+        .cta-buttons {
+          @apply flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6;
+        }
+      }
+    }
+  }
+
+  &-features {
+    @apply py-16;
+
+    .container {
+      @apply mx-auto px-4;
+
+      .section-header {
+        @apply text-center mb-12;
+
+        .title {
+          @apply text-3xl font-bold text-text-primary mb-4;
+        }
+
+        .description {
+          @apply text-lg text-text-secondary max-w-2xl mx-auto;
+        }
+      }
+
+      .features-grid {
+        @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+
+        .feature-card {
+          @apply p-6 rounded-lg bg-bg-secondary border border-border-primary 
+          transform transition-all duration-200 hover:scale-105;
+
+          .icon {
+            @apply w-12 h-12 text-egyptian-gold mb-4;
+          }
+
+          .title {
+            @apply text-xl font-semibold text-text-primary mb-2;
+          }
+
+          .description {
+            @apply text-text-secondary;
           }
         }
       }
     }
   }
 
-  .features {
-    h2 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 3rem;
-      color: var(--color-text-dark);
-    }
+  &-cta {
+    @apply py-16 bg-bg-secondary;
 
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem;
+    .container {
+      @apply mx-auto px-4;
 
-      .feature-card {
-        background-color: var(--color-background-light);
-        padding: 2rem;
-        border-radius: 1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+      .cta-content {
+        @apply max-w-3xl mx-auto text-center;
 
-        &:hover {
-          transform: translateY(-5px);
+        .title {
+          @apply text-3xl font-bold text-egyptian-gold mb-6;
         }
 
-        h3 {
-          font-size: 1.5rem;
-          margin-bottom: 1rem;
-          color: var(--color-primary);
-        }
-
-        p {
-          color: var(--color-text);
-          line-height: 1.6;
+        .description {
+          @apply text-lg text-text-secondary mb-8;
         }
       }
     }
