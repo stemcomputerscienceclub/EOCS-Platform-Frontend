@@ -1,0 +1,120 @@
+// Base typography styles
+body {
+  @apply font-sans text-text-primary bg-bg-primary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Headings
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold text-text-primary;
+}
+
+h1 {
+  @apply text-4xl mb-6;
+}
+
+h2 {
+  @apply text-3xl mb-4;
+}
+
+h3 {
+  @apply text-2xl mb-3;
+}
+
+h4 {
+  @apply text-xl mb-2;
+}
+
+h5 {
+  @apply text-lg mb-2;
+}
+
+h6 {
+  @apply text-base mb-2;
+}
+
+// Paragraphs
+p {
+  @apply text-text-secondary mb-4 leading-relaxed;
+}
+
+// Links
+a {
+  @apply text-egyptian-gold transition-colors duration-200;
+
+  &:hover {
+    @apply text-egyptian-gold-light;
+  }
+
+  &:active {
+    @apply text-egyptian-gold-dark;
+  }
+}
+
+// Lists
+ul, ol {
+  @apply pl-5 mb-4;
+
+  li {
+    @apply mb-2 text-text-secondary;
+  }
+}
+
+ul {
+  @apply list-disc;
+}
+
+ol {
+  @apply list-decimal;
+}
+
+// Code
+code {
+  @apply font-mono text-sm bg-bg-secondary px-2 py-1 rounded;
+}
+
+pre {
+  @apply font-mono text-sm bg-bg-secondary p-4 rounded mb-4 overflow-x-auto;
+}
+
+// Blockquotes
+blockquote {
+  @apply border-l-4 border-egyptian-gold pl-4 italic my-4 text-text-secondary;
+}
+
+// Small text
+small {
+  @apply text-sm text-text-tertiary;
+}
+
+// Strong text
+strong {
+  @apply font-bold text-text-primary;
+}
+
+// Form elements
+label {
+  @apply block text-sm font-medium text-text-secondary mb-2;
+}
+
+// Tables
+table {
+  @apply w-full mb-4;
+
+  th, td {
+    @apply px-4 py-2 border-b border-border-primary;
+  }
+
+  th {
+    @apply font-bold text-text-primary bg-bg-secondary;
+  }
+
+  td {
+    @apply text-text-secondary;
+  }
+
+  tbody tr {
+    @apply hover:bg-bg-secondary transition-colors duration-200;
+  }
+} 
