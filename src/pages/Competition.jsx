@@ -5,9 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import Timer from '../components/Timer';
 import '../styles/pages/_competition.scss';
 
-// Get competition length from environment variable or use default
-const COMPETITION_LENGTH = import.meta.env.VITE_COMPETITION_LENGTH || 300; // seconds
-
 // For code editor - we would use a proper library in production
 const SimpleCodeEditor = ({ value, onChange, language }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -72,7 +69,8 @@ const Competition = () => {
     error, 
     questions,
     submitAnswer,
-    hasActiveCompetition
+    hasActiveCompetition,
+    competitionLength
   } = useCompetition();
 
   const [answers, setAnswers] = useState({});
@@ -85,11 +83,11 @@ const Competition = () => {
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
-    if (!currentCompetition?.startTime) return null;
+    if (!currentCompetition?.startTime || !competitionLength) return null;
     const startTime = new Date(currentCompetition.startTime).getTime();
-    const duration = COMPETITION_LENGTH * 1000; // Convert seconds to milliseconds
+    const duration = competitionLength * 1000; // Convert seconds to milliseconds
     return startTime + duration;
-  }, [currentCompetition?.startTime]);
+  }, [currentCompetition?.startTime, competitionLength]);
 
   // Handle auto submit function
   const handleAutoSubmit = useCallback(async () => {

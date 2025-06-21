@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 const Timer = ({ endTime, onTimeUp }) => {
   const [timeLeft, setTimeLeft] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
 
   const formatTime = useCallback((milliseconds) => {
     if (milliseconds <= 0) return 'Time Up!';
@@ -15,37 +16,34 @@ const Timer = ({ endTime, onTimeUp }) => {
   useEffect(() => {
     if (!endTime) return;
 
-    let intervalId = null;
+    let animationFrameId = null;
+    let lastTimestamp = Date.now();
 
     const updateTimer = () => {
       const now = Date.now();
+      const elapsed = now - lastTimestamp;
+      lastTimestamp = now;
+
       const remaining = endTime - now;
 
       if (remaining <= 0) {
-        clearInterval(intervalId);
         setTimeLeft('Time Up!');
         onTimeUp?.();
         return;
       }
 
       setTimeLeft(formatTime(remaining));
-
-      // Switch to more frequent updates in the last 30 seconds
-      if (remaining <= 30000 && intervalId) {
-        clearInterval(intervalId);
-        intervalId = setInterval(updateTimer, 100);
-      }
+      
+      // Use requestAnimationFrame for smoother updates
+      animationFrameId = requestAnimationFrame(updateTimer);
     };
 
     // Initial update
     updateTimer();
 
-    // Start with 1-second updates
-    intervalId = setInterval(updateTimer, 1000);
-
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
     };
   }, [endTime, formatTime, onTimeUp]);

@@ -28,9 +28,6 @@ api.interceptors.request.use(
   }
 );
 
-// Get competition length from environment variable or use default
-const COMPETITION_LENGTH = import.meta.env.VITE_COMPETITION_LENGTH || 300; // seconds
-
 export const CompetitionProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
@@ -43,6 +40,7 @@ export const CompetitionProvider = ({ children }) => {
   const [hasActiveCompetition, setHasActiveCompetition] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [lastStatusCheck, setLastStatusCheck] = useState(null);
+  const [competitionLength, setCompetitionLength] = useState(null);
 
   // Memoize the status check function
   const checkStatus = useCallback(async () => {
@@ -64,6 +62,11 @@ export const CompetitionProvider = ({ children }) => {
       if (statusResponse.data.status === 'in_progress' && !activeParticipation) {
         setError('Another user is already participating in this competition');
         return false;
+      }
+
+      // Store the competition length from the server
+      if (configResponse.data.success && configResponse.data.data.competitionLength) {
+        setCompetitionLength(configResponse.data.data.competitionLength);
       }
 
       setLastStatusCheck(statusResponse.data);
@@ -195,7 +198,8 @@ export const CompetitionProvider = ({ children }) => {
     fetchUpdates,
     startCompetition,
     hasActiveCompetition,
-    questions
+    questions,
+    competitionLength
   }), [
     isConnected,
     connectionError,
@@ -207,7 +211,8 @@ export const CompetitionProvider = ({ children }) => {
     fetchUpdates,
     startCompetition,
     hasActiveCompetition,
-    questions
+    questions,
+    competitionLength
   ]);
 
   return (
