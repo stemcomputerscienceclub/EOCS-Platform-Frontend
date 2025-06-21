@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompetition } from '../context/CompetitionContext';
 import { useAuth } from '../context/AuthContext';
+import Timer from '../components/Timer';
 import '../styles/pages/_competition.scss';
 
 // Get competition length from environment variable or use default
@@ -75,7 +76,6 @@ const Competition = () => {
   } = useCompetition();
 
   const [answers, setAnswers] = useState({});
-  const [timeLeft, setTimeLeft] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
@@ -90,55 +90,6 @@ const Competition = () => {
     const duration = COMPETITION_LENGTH * 1000; // Convert seconds to milliseconds
     return startTime + duration;
   }, [currentCompetition?.startTime]);
-
-  // Memoize the format time function
-  const formatTime = useCallback((milliseconds) => {
-    if (milliseconds <= 0) return 'Time Up!';
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }, []);
-
-  // Timer effect with optimization
-  useEffect(() => {
-    if (!endTime) return;
-
-    let intervalId = null;
-
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = endTime - now;
-
-      if (remaining <= 0) {
-        clearInterval(intervalId);
-        setTimeLeft('Time Up!');
-        handleSubmitAll();
-        return;
-      }
-
-      setTimeLeft(formatTime(remaining));
-
-      // Switch to more frequent updates in the last 30 seconds
-      if (remaining <= 30000 && intervalId) {
-        clearInterval(intervalId);
-        intervalId = setInterval(updateTimer, 100);
-      }
-    };
-
-    // Initial update
-    updateTimer();
-
-    // Start with 1-second updates
-    intervalId = setInterval(updateTimer, 1000);
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [endTime, formatTime, handleSubmitAll]);
 
   // Handle auto submit function
   const handleAutoSubmit = useCallback(async () => {
@@ -219,27 +170,14 @@ const Competition = () => {
   // Handle page refresh/close
   useEffect(() => {
     const handleBeforeUnload = (event) => {
-      // Cancel the event
       event.preventDefault();
-      // Chrome requires returnValue to be set
       event.returnValue = '';
-
-      // Auto-submit answers
       handleAutoSubmit();
-
-      // Show warning message
-      const message = 'Warning: Leaving this page will submit all your current answers. Are you sure you want to proceed?';
-      event.returnValue = message;
-      return message;
+      return 'Warning: Leaving this page will submit all your current answers. Are you sure you want to proceed?';
     };
 
-    // Add the event listener
     window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [handleAutoSubmit]);
 
   if (loading) {
@@ -275,10 +213,7 @@ const Competition = () => {
         {/* Header and Timer */}
         <div className="header">
           <h1>Competition Platform</h1>
-          <div className="timer">
-            <div className="label">Time Remaining</div>
-            <div className="value">{timeLeft}</div>
-          </div>
+          <Timer endTime={endTime} onTimeUp={handleSubmitAll} />
         </div>
 
         {/* Questions Grid */}
