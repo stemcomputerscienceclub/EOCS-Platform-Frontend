@@ -1,12 +1,3 @@
-// Use statements must come first
-@use 'components/navigation';
-@use 'components/loading';
-@use 'pages/home';
-@use 'pages/login';
-@use 'pages/dashboard';
-@use 'pages/not-found';
-
-// Then regular imports
 // Base styles
 @import 'base/reset';
 @import 'base/variables';
@@ -16,6 +7,8 @@
 @import 'components/button';
 @import 'components/card';
 @import 'components/form';
+@import 'components/navigation';
+@import 'components/loading';
 
 // Layout
 @import 'layout/dashboard';
@@ -25,7 +18,9 @@
 // Pages
 @import 'pages/home';
 @import 'pages/login';
+@import 'pages/dashboard';
 @import 'pages/competition';
+@import 'pages/not-found';
 
 // Utilities
 @import 'utilities/animations';
