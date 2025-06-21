@@ -122,31 +122,25 @@ const Competition = () => {
     }
   }, [answers, submitAnswer, isAutoSubmitting]);
 
-  // Handle page refresh/close
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      // Cancel the event
-      event.preventDefault();
-      // Chrome requires returnValue to be set
-      event.returnValue = '';
+  // Memoize the submit all function
+  const handleSubmitAll = useCallback(async () => {
+    if (isSubmitting || isAutoSubmitting) return;
+    setIsSubmitting(true);
 
-      // Auto-submit answers
-      handleAutoSubmit();
-
-      // Show warning message
-      const message = 'Warning: Leaving this page will submit all your current answers. Are you sure you want to proceed?';
-      event.returnValue = message;
-      return message;
-    };
-
-    // Add the event listener
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [handleAutoSubmit]);
+    try {
+      await handleAutoSubmit();
+      // Add a small delay before navigation to ensure submission is complete
+      setTimeout(() => {
+        navigate('/results');
+      }, 1000);
+    } catch (error) {
+      console.error('Error submitting answers:', error);
+      setSubmitError('Failed to submit answers. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+      setShowSubmitConfirm(false);
+    }
+  }, [isSubmitting, isAutoSubmitting, handleAutoSubmit, navigate]);
 
   // Timer effect with optimization
   useEffect(() => {
@@ -213,6 +207,7 @@ const Competition = () => {
     }
   }, [hasActiveCompetition, navigate]);
 
+  // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
     setAnswers(prev => ({
       ...prev,
@@ -220,6 +215,7 @@ const Competition = () => {
     }));
   }, []);
 
+  // Handle flagging questions
   const toggleFlag = useCallback((questionId) => {
     setFlaggedQuestions(prev => {
       const newFlags = new Set(prev);
@@ -232,24 +228,31 @@ const Competition = () => {
     });
   }, []);
 
-  const handleSubmitAll = useCallback(async () => {
-    if (isSubmitting || isAutoSubmitting) return;
-    setIsSubmitting(true);
+  // Handle page refresh/close
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // Cancel the event
+      event.preventDefault();
+      // Chrome requires returnValue to be set
+      event.returnValue = '';
 
-    try {
-      await handleAutoSubmit();
-      // Add a small delay before navigation to ensure submission is complete
-      setTimeout(() => {
-        navigate('/results');
-      }, 1000);
-    } catch (error) {
-      console.error('Error submitting answers:', error);
-      setSubmitError('Failed to submit answers. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-      setShowSubmitConfirm(false);
-    }
-  }, [isSubmitting, isAutoSubmitting, handleAutoSubmit, navigate]);
+      // Auto-submit answers
+      handleAutoSubmit();
+
+      // Show warning message
+      const message = 'Warning: Leaving this page will submit all your current answers. Are you sure you want to proceed?';
+      event.returnValue = message;
+      return message;
+    };
+
+    // Add the event listener
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [handleAutoSubmit]);
 
   if (loading) {
     return (
