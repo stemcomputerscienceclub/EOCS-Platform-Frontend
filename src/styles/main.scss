@@ -1,26 +1,26 @@
 // Base styles
-@import 'base/reset';
-@import 'base/variables';
-@import 'base/typography';
+@use 'base/reset';
+@use 'base/variables';
+@use 'base/typography';
 
 // Components
-@import 'components/button';
-@import 'components/card';
-@import 'components/form';
-@import 'components/navigation';
-@import 'components/loading';
+@use 'components/button';
+@use 'components/card';
+@use 'components/form';
+@use 'components/navigation';
+@use 'components/loading';
 
 // Layout
-@import 'layout/dashboard';
+@use 'layout/dashboard';
 
 // Pages
-@import 'pages/home';
-@import 'pages/login';
-@import 'pages/dashboard';
-@import 'pages/competition';
-@import 'pages/not-found';
+@use 'pages/home';
+@use 'pages/login';
+@use 'pages/dashboard';
+@use 'pages/competition';
+@use 'pages/not-found';
 
 // Utilities
-@import 'utilities/animations';
-@import 'utilities/spacing';
-@import 'utilities/responsive';
+@use 'utilities/animations';
+@use 'utilities/spacing';
+@use 'utilities/responsive';
