@@ -79,6 +79,41 @@
   --z-toast: 500;
 }
 
+// SCSS Variables
+$color-egyptian-gold: var(--color-egyptian-gold);
+$color-egyptian-gold-light: var(--color-egyptian-gold-light);
+$color-egyptian-gold-dark: var(--color-egyptian-gold-dark);
+
+$color-bg-primary: var(--color-bg-primary);
+$color-bg-secondary: var(--color-bg-secondary);
+$color-bg-tertiary: var(--color-bg-tertiary);
+
+$color-text-primary: var(--color-text-primary);
+$color-text-secondary: var(--color-text-secondary);
+$color-text-tertiary: var(--color-text-tertiary);
+
+$color-border-primary: var(--color-border-primary);
+$color-border-secondary: var(--color-border-secondary);
+
+$spacing-xs: var(--spacing-xs);
+$spacing-sm: var(--spacing-sm);
+$spacing-md: var(--spacing-md);
+$spacing-lg: var(--spacing-lg);
+$spacing-xl: var(--spacing-xl);
+$spacing-2xl: var(--spacing-2xl);
+
+$radius-sm: var(--radius-sm);
+$radius-md: var(--radius-md);
+$radius-lg: var(--radius-lg);
+$radius-full: var(--radius-full);
+
+$font-sans: var(--font-sans);
+$font-mono: var(--font-mono);
+
+$transition-fast: var(--transition-fast);
+$transition-normal: var(--transition-normal);
+$transition-slow: var(--transition-slow);
+
 // Tailwind CSS variables
 @tailwind base;
 @tailwind components;
