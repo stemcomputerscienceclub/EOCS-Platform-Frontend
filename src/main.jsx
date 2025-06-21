@@ -11,7 +11,7 @@ import './index.css';
 const isProduction = import.meta.env.PROD;
 axios.defaults.baseURL = isProduction 
   ? 'https://eocs-competition-platform.vercel.app/api'
-  : 'http://localhost:5000';
+  : 'https://front-1-u2w0.onrender.com';
 axios.defaults.withCredentials = true;
 
 // Add request interceptor for authorization
