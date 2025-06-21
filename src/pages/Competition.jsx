@@ -81,6 +81,7 @@ const Competition = () => {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
@@ -151,13 +152,27 @@ const Competition = () => {
   useEffect(() => {
     if (!endTime) return;
 
+    let timer = null;
     const updateTimer = () => {
       const now = new Date().getTime();
       const distance = endTime - now;
 
+      // If less than 30 seconds remaining, update more frequently
+      if (distance <= 30000 && distance > 0) {
+        // Clear existing interval and set a new one with 100ms updates
+        if (timer) {
+          clearInterval(timer);
+          timer = setInterval(updateTimer, 100);
+        }
+      }
+
       if (distance <= 0) {
         setTimeLeft('Time Up!');
-        handleSubmitAll();
+        clearInterval(timer);
+        // Add a small delay before auto-submit to ensure all answers are saved
+        setTimeout(() => {
+          handleSubmitAll();
+        }, 1000);
         return true;
       }
 
@@ -176,16 +191,15 @@ const Competition = () => {
     const shouldStop = updateTimer();
     if (shouldStop) return;
 
-    // Set up interval
-    const timer = setInterval(() => {
-      const shouldStop = updateTimer();
-      if (shouldStop) {
+    // Set up interval - update every second normally
+    timer = setInterval(updateTimer, 1000);
+
+    return () => {
+      if (timer) {
         clearInterval(timer);
       }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [endTime, formatTime]);
+    };
+  }, [endTime, formatTime, handleSubmitAll]);
 
   useEffect(() => {
     if (!user) {
@@ -218,20 +232,24 @@ const Competition = () => {
     });
   }, []);
 
-  const handleSubmitAll = async () => {
+  const handleSubmitAll = useCallback(async () => {
     if (isSubmitting || isAutoSubmitting) return;
     setIsSubmitting(true);
 
     try {
       await handleAutoSubmit();
-      navigate('/results');
+      // Add a small delay before navigation to ensure submission is complete
+      setTimeout(() => {
+        navigate('/results');
+      }, 1000);
     } catch (error) {
       console.error('Error submitting answers:', error);
+      setSubmitError('Failed to submit answers. Please try again.');
     } finally {
       setIsSubmitting(false);
       setShowSubmitConfirm(false);
     }
-  };
+  }, [isSubmitting, isAutoSubmitting, handleAutoSubmit, navigate]);
 
   if (loading) {
     return (
