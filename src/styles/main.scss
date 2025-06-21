@@ -1,5 +1,27 @@
-@use 'variables' as *;
-@use 'base' as *;
+// Base styles
+@import 'base/reset';
+@import 'base/variables';
+@import 'base/typography';
+
+// Components
+@import 'components/button';
+@import 'components/card';
+@import 'components/form';
+
+// Layout
+@import 'layout/dashboard';
+@import 'layout/navigation';
+@import 'layout/footer';
+
+// Pages
+@import 'pages/home';
+@import 'pages/login';
+@import 'pages/competition';
+
+// Utilities
+@import 'utilities/animations';
+@import 'utilities/spacing';
+@import 'utilities/responsive';
 
 // Components
 @use 'components/navigation';
