@@ -218,149 +218,162 @@ const Competition = () => {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="competition-page">
+    <div className="competition-container">
       {/* Left Sidebar */}
-      <div className="sidebar">
-        {/* Header and Timer */}
-        <div className="header">
-          <h1>Competition Platform</h1>
+      <aside className="competition-sidebar">
+        <div className="sidebar-header">
+          <div className="logo">EOCS</div>
           <Timer endTime={endTime} onTimeUp={handleSubmitAll} />
         </div>
 
-        {/* Questions Grid */}
-        <div className="questions-grid">
-          <h2>Questions</h2>
-          <div className="grid">
+        <div className="sidebar-section">
+          <h2 className="section-title">Questions Overview</h2>
+          <div className="questions-grid">
             {questions.map((q, index) => (
               <button
                 key={q._id}
                 onClick={() => setCurrentQuestionIndex(index)}
                 className={`question-button ${
-                  answers[q._id] ? 'answered' : 
-                  flaggedQuestions.has(q._id) ? 'flagged' : 
-                  'unanswered'
-                } ${currentQuestionIndex === index ? 'current' : ''}`}
+                  answers[q._id] ? 'answered' : ''} 
+                  ${flaggedQuestions.has(q._id) ? 'flagged' : ''} 
+                  ${currentQuestionIndex === index ? 'current' : ''}`}
+                title={`Question ${index + 1}: ${q.subject} - ${q.difficulty}`}
               >
                 {index + 1}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Question Status */}
+        <div className="sidebar-section">
+          <h2 className="section-title">Question Status</h2>
           <div className="status-legend">
             <div className="status-item">
-              <div className="status-dot unanswered"></div>
-              <span>Not Answered</span>
-            </div>
-            <div className="status-item">
-              <div className="status-dot answered"></div>
+              <span className="status-dot answered"></span>
               <span>Answered</span>
             </div>
             <div className="status-item">
-              <div className="status-dot flagged"></div>
+              <span className="status-dot flagged"></span>
               <span>Flagged</span>
+            </div>
+            <div className="status-item">
+              <span className="status-dot unanswered"></span>
+              <span>Unanswered</span>
             </div>
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="submit-section">
-          <button onClick={() => setShowSubmitConfirm(true)}>
-            Submit All
-          </button>
+        <div className="sidebar-section">
+          <h2 className="section-title">Progress</h2>
+          <div className="progress-stats">
+            <div className="stat-item">
+              <span className="stat-label">Completed</span>
+              <span className="stat-value">{Object.keys(answers).length}/{questions.length}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Flagged</span>
+              <span className="stat-value">{flaggedQuestions.size}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Remaining</span>
+              <span className="stat-value">{questions.length - Object.keys(answers).length}</span>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <button 
+          onClick={() => setShowSubmitConfirm(true)}
+          className="btn btn-primary submit-button"
+          disabled={isSubmitting || isAutoSubmitting}
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit All Answers'}
+        </button>
+      </aside>
 
       {/* Main Content */}
-      <div className="main-content">
+      <main className="competition-main">
         {currentQuestion && (
           <div className="question-container">
-            {/* Question Header */}
             <div className="question-header">
               <div className="question-info">
-                <h2>Question {currentQuestionIndex + 1} / {questions.length}</h2>
-                <div className="question-type">
-                  {currentQuestion.type === 'mcq' ? 'Multiple Choice' : 'Programming Question'}
+                <span className="question-number">Question {currentQuestionIndex + 1}</span>
+                <div className="question-meta">
+                  <span className="subject-badge">{currentQuestion.subject}</span>
+                  <span className="difficulty-badge">{currentQuestion.difficulty}</span>
+                  <span className="points-badge">{currentQuestion.points} Points</span>
                 </div>
               </div>
-              <div className="points">
-                {currentQuestion.points} points
-              </div>
+              <button
+                onClick={() => toggleFlag(currentQuestion._id)}
+                className={`flag-button ${flaggedQuestions.has(currentQuestion._id) ? 'flagged' : ''}`}
+              >
+                {flaggedQuestions.has(currentQuestion._id) ? 'Unflag' : 'Flag'} Question
+              </button>
             </div>
 
-            {/* Question Text */}
-            <div className="question-text">
-              {currentQuestion.text}
-            </div>
-
-            {/* Question Content */}
-            {currentQuestion.type === 'mcq' ? (
-              <div className="mcq-options">
-                {currentQuestion.options.map((option, index) => (
-                  <label
-                    key={index}
-                    className={`option ${answers[currentQuestion._id] === option ? 'selected' : ''}`}
-                  >
-                    <div className="flex items-center">
+            <div className="question-content">
+              <div className="question-text" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+              
+              {currentQuestion.type === 'programming' ? (
+                <SimpleCodeEditor
+                  value={answers[currentQuestion._id] || ''}
+                  onChange={(value) => handleAnswerChange(currentQuestion._id, value)}
+                  language={currentQuestion.language}
+                />
+              ) : (
+                <div className="multiple-choice">
+                  {currentQuestion.options.map((option, index) => (
+                    <label key={index} className="option-label">
                       <input
                         type="radio"
                         name={`question-${currentQuestion._id}`}
                         value={option}
                         checked={answers[currentQuestion._id] === option}
                         onChange={() => handleAnswerChange(currentQuestion._id, option)}
-                        className="mr-3"
                       />
-                      <span>{option}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <SimpleCodeEditor
-                value={answers[currentQuestion._id] || ''}
-                onChange={(value) => handleAnswerChange(currentQuestion._id, value)}
-                language={currentQuestion.language}
-              />
-            )}
+                      <span className="option-text">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {/* Navigation */}
-            <div className="navigation">
+            <div className="question-footer">
               <button
-                onClick={() => toggleFlag(currentQuestion._id)}
-                className={`flag-button ${flaggedQuestions.has(currentQuestion._id) ? 'flagged' : ''}`}
+                onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                disabled={currentQuestionIndex === 0}
+                className="btn btn-secondary"
               >
-                {flaggedQuestions.has(currentQuestion._id) ? 'Unflag' : 'Flag'}
+                Previous
               </button>
-
-              <div className="nav-buttons">
-                <button
-                  onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
-                  disabled={currentQuestionIndex === 0}
-                  className="prev"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1))}
-                  disabled={currentQuestionIndex === questions.length - 1}
-                  className="next"
-                >
-                  Next
-                </button>
-              </div>
+              <button
+                onClick={() => setCurrentQuestionIndex(Math.min(questions.length - 1, currentQuestionIndex + 1))}
+                disabled={currentQuestionIndex === questions.length - 1}
+                className="btn btn-secondary"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}
+      </main>
 
-        <CustomAlert
-          isOpen={showSubmitConfirm}
-          title="Submit All Answers"
-          message="Are you sure you want to submit all your answers? This action cannot be undone."
-          onConfirm={handleSubmitAll}
-          onCancel={() => setShowSubmitConfirm(false)}
-          isLoading={isSubmitting}
-        />
-      </div>
+      {/* Submit Confirmation Dialog */}
+      <CustomAlert
+        isOpen={showSubmitConfirm}
+        title="Submit All Answers"
+        message="Are you sure you want to submit all your answers? This action cannot be undone."
+        onConfirm={handleSubmitAll}
+        onCancel={() => setShowSubmitConfirm(false)}
+        isLoading={isSubmitting}
+      />
+
+      {/* Error Message */}
+      {submitError && (
+        <div className="error-message">
+          {submitError}
+        </div>
+      )}
     </div>
   );
 };

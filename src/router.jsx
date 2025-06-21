@@ -1,7 +1,6 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 import { UNSAFE_NavigationContext as NavigationContext } from 'react-router-dom';
 import App from './App';
-import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Competition from './pages/Competition';
@@ -14,9 +13,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />} errorElement={<ErrorBoundary />}>
-      <Route index element={<Home />} />
       <Route
-        path="login"
+        index
         element={
           <PublicRoute>
             <Login />

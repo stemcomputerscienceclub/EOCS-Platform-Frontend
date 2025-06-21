@@ -373,14 +373,140 @@ const Dashboard = () => {
       {/* Instructions Section */}
       <div className="dashboard-section">
         <h2 className="section-header">INSTRUCTIONS</h2>
-        <ul className="instruction-list">
-          {competition.instructions.map((instruction, index) => (
-            <li key={index} className="instruction-item">
-              <span className="instruction-bullet">•</span>
-              <span>{instruction}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="instructions-container">
+          {/* Date & Time */}
+          <div className="instruction-group">
+            <h3 className="instruction-group-title">Exam Date & Time</h3>
+            <ul className="instruction-list">
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Exam Date & Time: Saturday, June 21 at 5:00 PM (Duration: 2 hours)</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You must begin the exam between 5:00 PM and 5:30 PM</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>If you join late, you will only have the remaining time until 7:00 PM</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>The form will automatically close and submit at 7:30 PM</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Any responses received after that time will not be accepted under any circumstances</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Format */}
+          <div className="instruction-group">
+            <h3 className="instruction-group-title">Exam Format</h3>
+            <ul className="instruction-list">
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>30 questions total: 6 each in Physics, Math, Chemistry, Biology, and Programming</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Each subject includes:</span>
+                <ul className="instruction-list nested">
+                  <li className="instruction-item">
+                    <span className="instruction-bullet">◦</span>
+                    <span>3 easy questions – 1 point each</span>
+                  </li>
+                  <li className="instruction-item">
+                    <span className="instruction-bullet">◦</span>
+                    <span>2 moderate questions – 2 points each</span>
+                  </li>
+                  <li className="instruction-item">
+                    <span className="instruction-bullet">◦</span>
+                    <span>1 advanced question – 3 points</span>
+                  </li>
+                </ul>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Science questions are multiple choice</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Programming questions require code submission in Python or C++</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Rules */}
+          <div className="instruction-group">
+            <h3 className="instruction-group-title">Important Rules</h3>
+            <ul className="instruction-list">
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Your screen will be monitored throughout the exam</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You may only keep one browser tab open. Any tab switching will be logged and may result in disqualification</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You must use a computer, laptop, or tablet. Phones are not recommended</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You must have a stable internet connection and work from a quiet, distraction-free environment</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Use of AI tools or external help is prohibited</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You may use a calculator</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Advice */}
+          <div className="instruction-group">
+            <h3 className="instruction-group-title">Advice for Participants</h3>
+            <ul className="instruction-list">
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>You are not expected to solve all 30 questions. The exam is designed for a wide range of students, from early high school to undergraduate levels</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Focus on the subjects you're strongest in and manage your time carefully</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>Expect a mix of question difficulties—that's intentional!</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Additional Information */}
+          <div className="instruction-group">
+            <h3 className="instruction-group-title">Additional Information</h3>
+            <ul className="instruction-list">
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>After the exam, top-performing students will be invited to the EOCS Training Round, a 10-day guided program to prepare for the next competition phases</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>If selected, you'll also be assigned to a team for the remaining rounds</span>
+              </li>
+              <li className="instruction-item">
+                <span className="instruction-bullet">•</span>
+                <span>If you face technical issues, please contact us immediately at: <a href="mailto:contact@eocs.net">contact@eocs.net</a></span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Competition Details Section */}

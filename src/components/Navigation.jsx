@@ -9,18 +9,18 @@ export default function Navigation() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/');
   };
 
   // Don't show navigation on login page
-  if ('/login' === location.pathname) {
+  if ('/' === location.pathname) {
     return null;
   }
 
   return (
     <nav className="nav">
       {/* Logo */}
-      <Link to="/" className="nav-brand">
+      <Link to={user ? "/dashboard" : "/"} className="nav-brand">
         <span className="nav-logo">EOCS</span>
       </Link>
 
@@ -40,7 +40,7 @@ export default function Navigation() {
             </button>
           </>
         ) : (
-          <Link to="/login" className="nav-logout">
+          <Link to="/" className="nav-logout">
             Login
           </Link>
         )}
