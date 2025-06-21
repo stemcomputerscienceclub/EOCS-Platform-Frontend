@@ -1,0 +1,157 @@
+/* Logo Animation Styles */
+.logo-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+/* Special size for hero section logo */
+.hero-logo-container {
+    width: 120px;
+    height: 120px;
+    margin-bottom: var(--spacing-md);
+    padding: 8px;
+}
+
+.logo-shield {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, var(--color-bg-primary), var(--color-bg-secondary));
+    border: 2px solid var(--color-egyptian-gold);
+    border-radius: 0 0 50% 50% / 0 0 25% 25%;
+    box-shadow: 
+        0 0 10px rgba(198, 166, 88, 0.3),
+        inset 0 0 15px rgba(198, 166, 88, 0.2);
+    overflow: hidden;
+}
+
+.logo-shield::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(198, 166, 88, 0.1),
+        transparent
+    );
+    animation: shieldShine 6s infinite;
+}
+
+@keyframes shieldShine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    50% { transform: translateX(100%) rotate(45deg); }
+    100% { transform: translateX(-100%) rotate(45deg); }
+}
+
+.logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 100%;
+    padding: 3px;
+}
+
+.logo-quadrant {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(198, 166, 88, 0.3);
+    margin: 1px;
+    position: relative;
+    overflow: hidden;
+    padding: 2px;
+}
+
+.logo-quadrant::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(198, 166, 88, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.logo-quadrant:hover::before {
+    opacity: 1;
+}
+
+.logo-symbol {
+    font-size: 0.6rem;
+    color: var(--color-egyptian-gold);
+    text-shadow: 0 0 5px rgba(198, 166, 88, 0.5);
+    transition: all 0.3s ease;
+}
+
+/* Larger symbols for hero logo */
+.hero-logo-container .logo-symbol {
+    font-size: 1.2rem;
+}
+
+.logo-quadrant:hover .logo-symbol {
+    transform: scale(1.1);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+.logo-text {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.6rem;
+    color: var(--color-egyptian-gold);
+    text-shadow: 0 0 5px rgba(198, 166, 88, 0.5);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* Hero logo text */
+.hero-logo-container .logo-text {
+    font-size: 0.85rem;
+    bottom: -22px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .logo-container {
+        width: 50px;
+        height: 50px;
+        padding: 2px;
+    }
+
+    .hero-logo-container {
+        width: 100px;
+        height: 100px;
+        padding: 6px;
+    }
+
+    .logo-symbol {
+        font-size: 0.5rem;
+    }
+
+    .hero-logo-container .logo-symbol {
+        font-size: 1rem;
+    }
+
+    .logo-text {
+        font-size: 0.5rem;
+        bottom: -12px;
+    }
+
+    .hero-logo-container .logo-text {
+        font-size: 0.7rem;
+        bottom: -18px;
+    }
+} 

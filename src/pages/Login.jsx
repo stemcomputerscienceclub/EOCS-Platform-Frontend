@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Loading from '../components/Loading';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -53,57 +54,95 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-primary">
-      <div className="max-w-md w-full space-y-8 p-8 bg-bg-secondary rounded-lg shadow-lg">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-text-primary">
-            Login to Your Account
-          </h2>
+      <div className="card max-w-md w-full p-8">
+        <div className="logo-container mb-8">
+          <div className="logo-shield">
+            <div className="logo-grid">
+              <div className="logo-quadrant">
+                <span className="logo-symbol">E</span>
+              </div>
+              <div className="logo-quadrant">
+                <span className="logo-symbol">O</span>
+              </div>
+              <div className="logo-quadrant">
+                <span className="logo-symbol">C</span>
+              </div>
+              <div className="logo-quadrant">
+                <span className="logo-symbol">S</span>
+              </div>
+            </div>
+          </div>
+          <span className="logo-text">EOCS</span>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+        <h2 className="section-title text-center glowing-text mb-8">
+          Login to Your Account
+        </h2>
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <div className="bg-error bg-opacity-10 border border-error text-error px-4 py-3 rounded-md">
               {error}
             </div>
           )}
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">Email</label>
+
+          <div className="space-y-4">
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">Email</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-egyptian-gold focus:border-egyptian-gold focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                className="form-input"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password</label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-egyptian-gold focus:border-egyptian-gold focus:z-10 sm:text-sm"
-                placeholder="Password"
+                className="form-input"
+                placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
               />
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-egyptian-gold hover:bg-egyptian-gold-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-egyptian-gold disabled:opacity-50"
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary w-full"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <Loading /> 
+                <span className="ml-2">Logging in...</span>
+              </div>
+            ) : (
+              'Login'
+            )}
+          </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-text-secondary">
+            Don't have an account?{' '}
+            <button 
+              onClick={() => navigate('/register')} 
+              className="animated-link text-egyptian-gold"
+            >
+              Register here
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

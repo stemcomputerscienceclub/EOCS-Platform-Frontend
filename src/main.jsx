@@ -7,7 +7,7 @@ import { CompetitionProvider } from './context/CompetitionContext';
 import router from './router';
 
 // Import styles
-import './styles/main.scss';
+import './styles/main.css';
 import './index.css';
 
 // Configure axios defaults

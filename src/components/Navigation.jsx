@@ -23,7 +23,25 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-egyptian-gold">EOCS</span>
+            <div className="logo-container">
+              <div className="logo-shield">
+                <div className="logo-grid">
+                  <div className="logo-quadrant">
+                    <span className="logo-symbol">E</span>
+                  </div>
+                  <div className="logo-quadrant">
+                    <span className="logo-symbol">O</span>
+                  </div>
+                  <div className="logo-quadrant">
+                    <span className="logo-symbol">C</span>
+                  </div>
+                  <div className="logo-quadrant">
+                    <span className="logo-symbol">S</span>
+                  </div>
+                </div>
+              </div>
+              <span className="logo-text">EOCS</span>
+            </div>
           </Link>
 
           {/* Auth Controls */}
@@ -33,7 +51,7 @@ export default function Navigation() {
                 <span className="text-text-secondary px-3 py-2 rounded-md bg-bg-tertiary">
                   {user.username || user.email}
                 </span>
-                <button onClick={handleLogout} className="btn btn-secondary">
+                <button onClick={handleLogout} className="btn btn-secondary animated-link">
                   Logout
                 </button>
               </div>

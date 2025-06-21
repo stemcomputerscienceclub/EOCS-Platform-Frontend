@@ -3,19 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { useCompetition } from '../context/CompetitionContext';
 import { useAuth } from '../context/AuthContext';
 import Timer from '../components/Timer';
-import '../styles/pages/_competition.scss';
+import Loading from '../components/Loading';
 
 // For code editor - we would use a proper library in production
 const SimpleCodeEditor = ({ value, onChange, language }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div className={`code-editor-container ${isFocused ? 'focused' : ''}`}>
+    <div className={`code-editor-container card ${isFocused ? 'focused' : ''}`}>
       <div className="code-editor-header">
-        <span className="language-badge">{language || 'javascript'}</span>
+        <span className="language-badge glowing-text">{language || 'javascript'}</span>
       </div>
       <textarea
-        className="code-editor"
+        className="code-editor form-input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
@@ -32,10 +32,10 @@ const CustomAlert = ({ isOpen, title, message, onConfirm, onCancel, isLoading })
   if (!isOpen) return null;
 
   return (
-    <div className="alert-dialog">
-      <div className="dialog-content">
+    <div className="loading-overlay">
+      <div className="card dialog-content">
         <div className="dialog-header">
-          <h3>{title}</h3>
+          <h3 className="section-title">{title}</h3>
         </div>
         <div className="dialog-body">
           <p>{message}</p>
@@ -43,16 +43,22 @@ const CustomAlert = ({ isOpen, title, message, onConfirm, onCancel, isLoading })
         <div className="dialog-footer">
           <button
             onClick={onCancel}
-            className="btn btn-secondary"
+            className="btn btn-secondary animated-link"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="btn btn-primary disabled:opacity-50"
+            className="btn btn-primary"
           >
-            {isLoading ? 'Submitting...' : 'Confirm'}
+            {isLoading ? (
+              <>
+                <Loading /> Submitting...
+              </>
+            ) : (
+              'Confirm'
+            )}
           </button>
         </div>
       </div>
@@ -179,17 +185,18 @@ const Competition = () => {
   }, [handleAutoSubmit]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-primary">
-        <div className="text-2xl font-semibold text-text-primary">Loading competition...</div>
-      </div>
-    );
+    return <Loading fullScreen />;
   }
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary">
-        <div className="text-red-400">{error}</div>
+        <div className="card">
+          <h2 className="section-title text-error">{error}</h2>
+          <button onClick={() => navigate('/dashboard')} className="btn btn-secondary animated-link">
+            Return to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
@@ -197,7 +204,13 @@ const Competition = () => {
   if (!questions || questions.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary">
-        <div className="text-xl text-text-secondary">No questions available. Please try again.</div>
+        <div className="card">
+          <h2 className="section-title">No Questions Available</h2>
+          <p className="text-text-secondary">Please try again later.</p>
+          <button onClick={() => navigate('/dashboard')} className="btn btn-secondary animated-link mt-4">
+            Return to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
