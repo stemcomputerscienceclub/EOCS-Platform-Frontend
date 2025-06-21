@@ -85,21 +85,62 @@ const Competition = () => {
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
-    if (!currentCompetition?.timeRemaining || !currentCompetition?.startTime) return null;
+    if (!currentCompetition?.startTime) return null;
     const startTime = new Date(currentCompetition.startTime).getTime();
-    return startTime + (currentCompetition.timeRemaining * 1000);
-  }, [currentCompetition?.timeRemaining, currentCompetition?.startTime]);
+    const duration = COMPETITION_LENGTH * 1000; // Convert seconds to milliseconds
+    return startTime + duration;
+  }, [currentCompetition?.startTime]);
 
   // Memoize the format time function
-  const formatTime = useCallback((distance) => {
-    if (distance <= 0) return 'Time Up!';
-    const hours = Math.floor(distance / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  const formatTime = useCallback((milliseconds) => {
+    if (milliseconds <= 0) return 'Time Up!';
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }, []);
 
-  // Memoize the auto submit function
+  // Timer effect with optimization
+  useEffect(() => {
+    if (!endTime) return;
+
+    let intervalId = null;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const remaining = endTime - now;
+
+      if (remaining <= 0) {
+        clearInterval(intervalId);
+        setTimeLeft('Time Up!');
+        handleSubmitAll();
+        return;
+      }
+
+      setTimeLeft(formatTime(remaining));
+
+      // Switch to more frequent updates in the last 30 seconds
+      if (remaining <= 30000 && intervalId) {
+        clearInterval(intervalId);
+        intervalId = setInterval(updateTimer, 100);
+      }
+    };
+
+    // Initial update
+    updateTimer();
+
+    // Start with 1-second updates
+    intervalId = setInterval(updateTimer, 1000);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [endTime, formatTime, handleSubmitAll]);
+
+  // Handle auto submit function
   const handleAutoSubmit = useCallback(async () => {
     if (isAutoSubmitting) return; // Prevent multiple submissions
     setIsAutoSubmitting(true);
@@ -122,7 +163,7 @@ const Competition = () => {
     }
   }, [answers, submitAnswer, isAutoSubmitting]);
 
-  // Memoize the submit all function
+  // Handle submit all function
   const handleSubmitAll = useCallback(async () => {
     if (isSubmitting || isAutoSubmitting) return;
     setIsSubmitting(true);
@@ -141,59 +182,6 @@ const Competition = () => {
       setShowSubmitConfirm(false);
     }
   }, [isSubmitting, isAutoSubmitting, handleAutoSubmit, navigate]);
-
-  // Timer effect with optimization
-  useEffect(() => {
-    if (!endTime) return;
-
-    let timer = null;
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const distance = endTime - now;
-
-      // If less than 30 seconds remaining, update more frequently
-      if (distance <= 30000 && distance > 0) {
-        // Clear existing interval and set a new one with 100ms updates
-        if (timer) {
-          clearInterval(timer);
-          timer = setInterval(updateTimer, 100);
-        }
-      }
-
-      if (distance <= 0) {
-        setTimeLeft('Time Up!');
-        clearInterval(timer);
-        // Add a small delay before auto-submit to ensure all answers are saved
-        setTimeout(() => {
-          handleSubmitAll();
-        }, 1000);
-        return true;
-      }
-
-      const newTimeString = formatTime(distance);
-      setTimeLeft(prev => {
-        // Only update if the time string has actually changed
-        if (prev !== newTimeString) {
-          return newTimeString;
-        }
-        return prev;
-      });
-      return false;
-    };
-
-    // Initial update
-    const shouldStop = updateTimer();
-    if (shouldStop) return;
-
-    // Set up interval - update every second normally
-    timer = setInterval(updateTimer, 1000);
-
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [endTime, formatTime, handleSubmitAll]);
 
   useEffect(() => {
     if (!user) {

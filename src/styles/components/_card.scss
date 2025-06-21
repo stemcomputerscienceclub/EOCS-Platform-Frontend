@@ -1,0 +1,35 @@
+.card {
+  @apply bg-bg-secondary rounded-lg shadow-lg p-6;
+
+  &-header {
+    @apply text-xl font-semibold text-egyptian-gold mb-4;
+  }
+
+  &-body {
+    @apply text-text-secondary;
+  }
+
+  &-footer {
+    @apply mt-4 flex justify-end space-x-4;
+  }
+
+  &-highlight {
+    @apply border-l-4 border-egyptian-gold;
+  }
+
+  &-stats {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+
+    .stat-item {
+      @apply p-4 rounded-lg bg-bg-primary bg-opacity-50;
+
+      .stat-label {
+        @apply text-sm text-text-secondary font-medium;
+      }
+
+      .stat-value {
+        @apply text-2xl font-bold text-egyptian-gold mt-1;
+      }
+    }
+  }
+} 
