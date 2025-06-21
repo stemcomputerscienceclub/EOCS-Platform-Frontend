@@ -5,6 +5,9 @@ import axios from 'axios';
 import { AuthProvider } from './context/AuthContext';
 import { CompetitionProvider } from './context/CompetitionContext';
 import router from './router';
+
+// Import styles
+import './styles/main.scss';
 import './index.css';
 
 // Configure axios defaults
@@ -28,7 +31,11 @@ axios.interceptors.request.use(
   }
 );
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+// Initialize React app
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+// Render the app
+root.render(
   <React.StrictMode>
     <AuthProvider>
       <CompetitionProvider>
