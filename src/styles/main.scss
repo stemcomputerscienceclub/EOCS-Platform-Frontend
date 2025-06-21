@@ -1,3 +1,12 @@
+// Use statements must come first
+@use 'components/navigation';
+@use 'components/loading';
+@use 'pages/home';
+@use 'pages/login';
+@use 'pages/dashboard';
+@use 'pages/not-found';
+
+// Then regular imports
 // Base styles
 @import 'base/reset';
 @import 'base/variables';
@@ -23,13 +32,5 @@
 @import 'utilities/spacing';
 @import 'utilities/responsive';
 
-// Components
-@use 'components/navigation';
-@use 'components/loading';
-
-// Pages
-@use 'pages/home';
-@use 'pages/login';
-@use 'pages/dashboard';
 // Competition page now uses Tailwind CSS
 @use 'pages/not-found'; 
