@@ -9,12 +9,12 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://front-1-u2w0.onrender.com',
+        target: 'https://eocs-platform-backend.onrender.com',
         changeOrigin: true,
         secure: false,
       },
       '/socket.io': {
-        target: 'https://front-1-u2w0.onrender.com',
+        target: 'https://eocs-platform-backend.onrender.com',
         changeOrigin: true,
         secure: false,
         ws: true,

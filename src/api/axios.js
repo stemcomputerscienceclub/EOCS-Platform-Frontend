@@ -3,10 +3,10 @@ import axios from 'axios';
 // Determine the API URL based on the environment
 const getBaseURL = () => {
   if (process.env.NODE_ENV === 'development') {
-    return 'https://front-1-u2w0.onrender.com/api';
+    return 'https://eocs-platform-backend.onrender.com/api';
   }
   // For production on Vercel
-  return `${process.env.NEXT_PUBLIC_API_URL}/api` || 'https://front-1-u2w0.onrender.com/api';
+  return `${process.env.NEXT_PUBLIC_API_URL}/api` || 'https://eocs-platform-backend.onrender.com/api';
 };
 
 const api = axios.create({

@@ -4,6 +4,30 @@ import { useAuth } from './AuthContext';
 
 const CompetitionContext = createContext();
 
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://eocs-platform-backend.onrender.com/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+
+// Add request interceptor to add token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Get competition length from environment variable or use default
 const COMPETITION_LENGTH = import.meta.env.VITE_COMPETITION_LENGTH || 300; // seconds
 
@@ -29,8 +53,8 @@ export const CompetitionProvider = ({ children }) => {
       const activeParticipation = localStorage.getItem('activeParticipation');
       
       const [statusResponse, configResponse] = await Promise.all([
-        axios.get('/api/competition/status'),
-        axios.get('/api/competition/config')
+        api.get('/competition/status'),
+        api.get('/competition/config')
       ]);
 
       if (activeParticipation && statusResponse.data.status === 'not_started') {
@@ -60,7 +84,7 @@ export const CompetitionProvider = ({ children }) => {
     if (!user || !hasActiveCompetition) return;
 
     try {
-      const response = await axios.get('/api/competition/progress');
+      const response = await api.get('/competition/progress');
       
       // Only update if there are actual changes
       setCurrentCompetition(prev => {
@@ -115,12 +139,12 @@ export const CompetitionProvider = ({ children }) => {
   // Memoize the start competition function
   const startCompetition = useCallback(async () => {
     try {
-      const statusResponse = await axios.get('/api/competition/status');
+      const statusResponse = await api.get('/competition/status');
       if (statusResponse.data.status === 'in_progress') {
         throw new Error('You already have an active competition session');
       }
 
-      const response = await axios.post('/api/competition/start');
+      const response = await api.post('/competition/start');
       
       if (response.data.questions && response.data.questions.length > 0) {
         setQuestions(response.data.questions);
@@ -141,7 +165,7 @@ export const CompetitionProvider = ({ children }) => {
   // Memoize the submit answer function
   const submitAnswer = useCallback(async (questionId, answer) => {
     try {
-      const response = await axios.post(`/api/competition/submit/${questionId}`, {
+      const response = await api.post(`/competition/submit/${questionId}`, {
         answer,
         timestamp: new Date().toISOString()
       });

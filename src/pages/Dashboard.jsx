@@ -4,6 +4,30 @@ import { useAuth } from '../context/AuthContext';
 import { useCompetition } from '../context/CompetitionContext';
 import axios from 'axios';
 
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://eocs-platform-backend.onrender.com/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+
+// Add request interceptor to add token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Add throttle utility
 const throttle = (func, limit) => {
   let inThrottle;
@@ -74,7 +98,7 @@ const Dashboard = () => {
   // Add retry mechanism for API calls
   const fetchWithRetry = async (url, options = {}, retries = 3, delay = 1000) => {
     try {
-      const response = await axios({
+      const response = await api({
         url,
         method: options.method || 'GET',
         headers: options.headers || {},
@@ -103,7 +127,7 @@ const Dashboard = () => {
       console.log('Loading dashboard...'); // Debug log
       
       // First get the competition config
-      const configResponse = await fetchWithRetry('/api/competition/config');
+      const configResponse = await fetchWithRetry('/competition/config');
       console.log('Config response:', configResponse);
       
       if (!configResponse || !configResponse.success) {
@@ -113,7 +137,7 @@ const Dashboard = () => {
       const configData = configResponse.data;
       
       // Then get the user's status
-      const statusResponse = await fetchWithRetry('/api/competition/status');
+      const statusResponse = await fetchWithRetry('/competition/status');
       console.log('Status response:', statusResponse);
       
       // Update competition state with both config and status
@@ -208,7 +232,7 @@ const Dashboard = () => {
       setError(null);
       
       // First check if we're still allowed to enter
-      const configResponse = await fetchWithRetry('/api/competition/config');
+      const configResponse = await fetchWithRetry('/competition/config');
       if (!configResponse.success || configResponse.data.status !== 'in_progress_can_enter') {
         setError('Competition entry period has ended');
         setLoading(false);

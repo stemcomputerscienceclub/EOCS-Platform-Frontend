@@ -1,106 +1,108 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/axios';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
-const axiosRetry = async (fn, retries = 3, delay = 1000) => {
-  try {
-    return await fn();
-  } catch (error) {
-    // Don't retry on 401 unauthorized - user is simply not logged in
-    if (error.response?.status === 401) {
-      throw error;
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://eocs-platform-backend.onrender.com/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  timeout: 10000 // Add timeout
+});
+
+// Add request interceptor to add token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    if (retries > 0) {
-      console.log(`Retrying in ${delay/1000} seconds...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return axiosRetry(fn, retries - 1, delay * 2);
-    }
-    throw error;
+    // Log the request URL for debugging
+    console.log('Making request to:', config.baseURL + config.url);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-};
+);
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const checkAuth = async () => {
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
     try {
-      const response = await axiosRetry(() => api.get('/auth/me'));
-      setUser(response.data);
-      setError(null);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.get('/auth/me');
+      setUser(response.data.user);
     } catch (error) {
-      // Only log error if it's not a 401
-      if (error.response?.status !== 401) {
-        console.error('Auth check error:', error);
-      }
+      console.error('Error checking user:', error);
+      localStorage.removeItem('token');
       setUser(null);
-      if (error.response?.status !== 401) {
-        setError(error.message);
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const response = await axiosRetry(() => 
-        api.post('/auth/login', { username, password })
-      );
+      console.log('Attempting login with:', { email });
+      const response = await api.post('/auth/login', { email, password });
+      const { token, user: userData } = response.data;
       
-      // Store the token in localStorage
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
+      localStorage.setItem('token', token);
+      setUser(userData);
       
-      setUser(response.data.user);
-      setError(null);
-      return response.data;
+      return userData;
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.response?.data?.message || error.message);
       throw error;
     }
   };
 
   const logout = async () => {
-    try {
-      await api.get('/auth/logout');
-      // Clear token from localStorage
-      localStorage.removeItem('token');
-      setUser(null);
-      setError(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if the server request fails, clear the local state
-      localStorage.removeItem('token');
-      setUser(null);
-      setError(error.response?.data?.message || error.message);
-    }
+    localStorage.removeItem('token');
+    setUser(null);
   };
-
-  useEffect(() => {
-    // Only check auth if we don't have a user
-    if (!user) {
-      checkAuth();
-    }
-  }, []);
 
   const value = {
     user,
     loading,
-    error,
     login,
     logout,
-    checkAuth
+    checkUser
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
@@ -111,4 +113,6 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
+
+export default AuthContext; 

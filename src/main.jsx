@@ -10,7 +10,7 @@ import './index.css';
 // Configure axios defaults
 const isProduction = import.meta.env.PROD;
 axios.defaults.baseURL = isProduction 
-  ? 'https://front-1-u2w0.onrender.com'
+  ? 'https://eocs-platform-backend.onrender.com'
   : 'http://localhost:5000';
 axios.defaults.withCredentials = true;
 
