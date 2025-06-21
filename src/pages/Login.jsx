@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
+import Navigation from '../components/Navigation';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -53,27 +54,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary">
+    <div className="min-h-screen login-page flex items-center justify-center bg-bg-primary">
       <div className="card max-w-md w-full p-8">
-        <div className="logo-container mb-8">
-          <div className="logo-shield">
-            <div className="logo-grid">
-              <div className="logo-quadrant">
-                <span className="logo-symbol">E</span>
-              </div>
-              <div className="logo-quadrant">
-                <span className="logo-symbol">O</span>
-              </div>
-              <div className="logo-quadrant">
-                <span className="logo-symbol">C</span>
-              </div>
-              <div className="logo-quadrant">
-                <span className="logo-symbol">S</span>
-              </div>
-            </div>
-          </div>
-          <span className="logo-text">EOCS</span>
-        </div>
 
         <h2 className="section-title text-center glowing-text mb-8">
           Login to Your Account
@@ -132,17 +114,6 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-text-secondary">
-            Don't have an account?{' '}
-            <button 
-              onClick={() => navigate('/register')} 
-              className="animated-link text-egyptian-gold"
-            >
-              Register here
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );

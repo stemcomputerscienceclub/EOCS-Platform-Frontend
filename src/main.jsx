@@ -8,6 +8,11 @@ import router from './router';
 
 // Import styles
 import './styles/main.css';
+import './styles/components.css';
+import './styles/animations.css';
+import './styles/utilities.css';
+import './styles/pages.css';
+import './styles/logo.css';
 import './index.css';
 
 // Configure axios defaults

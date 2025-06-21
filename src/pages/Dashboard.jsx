@@ -272,18 +272,18 @@ const Dashboard = () => {
   const renderStatus = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center space-y-4 p-8">
+        <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p className="text-text-secondary">Loading competition status...</p>
+          <p className="loading-text">Loading competition status...</p>
         </div>
       );
     }
 
     if (error) {
       return (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
+        <div className="error-message" role="alert">
+          <strong>Error: </strong>
+          <span>{error}</span>
         </div>
       );
     }
@@ -291,10 +291,10 @@ const Dashboard = () => {
     switch (competition.status) {
       case 'upcoming':
         return (
-          <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-egyptian-gold mb-4">Competition Starts In</h3>
-            <div className="text-4xl font-bold text-text-primary mb-4">{timeLeft}</div>
-            <p className="text-text-secondary">
+          <div className="status-card">
+            <h3 className="status-title">Competition Starts In</h3>
+            <div className="status-timer">{timeLeft}</div>
+            <p className="status-info">
               Competition starts at {formatDateTime(competition.startTime)}
             </p>
           </div>
@@ -302,9 +302,9 @@ const Dashboard = () => {
 
       case 'in_progress_can_enter':
         return (
-          <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-egyptian-gold mb-4">Competition In Progress</h3>
-            <div className="text-text-secondary mb-4">
+          <div className="status-card">
+            <h3 className="status-title">Competition In Progress</h3>
+            <div className="status-info">
               <p>Time remaining to enter: {timeLeft}</p>
               <p>Entry deadline: {formatDateTime(competition.entranceDeadline)}</p>
             </div>
@@ -320,9 +320,9 @@ const Dashboard = () => {
 
       case 'in_progress_cannot_enter':
         return (
-          <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-egyptian-gold mb-4">Entry Period Ended</h3>
-            <p className="text-text-secondary">
+          <div className="status-card">
+            <h3 className="status-title">Entry Period Ended</h3>
+            <p className="status-info">
               The competition is in progress but the entry period has ended.
               Next competition starts at {formatDateTime(competition.nextStartTime)}
             </p>
@@ -331,9 +331,9 @@ const Dashboard = () => {
 
       case 'completed':
         return (
-          <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-egyptian-gold mb-4">Competition Completed</h3>
-            <p className="text-text-secondary mb-4">
+          <div className="status-card">
+            <h3 className="status-title">Competition Completed</h3>
+            <p className="status-info">
               You have completed the competition. View your results below.
             </p>
             <button
@@ -347,9 +347,9 @@ const Dashboard = () => {
 
       default:
         return (
-          <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-semibold text-egyptian-gold mb-4">Status Unavailable</h3>
-            <p className="text-text-secondary">
+          <div className="status-card">
+            <h3 className="status-title">Status Unavailable</h3>
+            <p className="status-info">
               Unable to determine competition status. Please try again later.
             </p>
           </div>
@@ -358,66 +358,59 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-egyptian-gold mb-2">{competition.title}</h1>
-          <p className="text-text-secondary">Welcome, {user?.username || 'Participant'}</p>
-        </div>
+    <div className="dashboard-container">
+      {/* Header */}
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">{competition.title}</h1>
+        <p className="dashboard-welcome">Welcome, {user?.username || 'user'}</p>
+      </div>
 
-        {/* Status Card */}
-        <div className="mb-8">
-          {renderStatus()}
-        </div>
+      {/* Status Card */}
+      <div className="dashboard-section">
+        {renderStatus()}
+      </div>
 
-        {/* Instructions Card */}
-        <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-semibold text-egyptian-gold mb-4">Instructions</h2>
-          <ul className="space-y-3">
-            {competition.instructions.map((instruction, index) => (
-              <li key={index} className="flex items-start">
-                <span className="text-egyptian-gold mr-2">•</span>
-                <span className="text-text-secondary">{instruction}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {/* Instructions Section */}
+      <div className="dashboard-section">
+        <h2 className="section-header">INSTRUCTIONS</h2>
+        <ul className="instruction-list">
+          {competition.instructions.map((instruction, index) => (
+            <li key={index} className="instruction-item">
+              <span className="instruction-bullet">•</span>
+              <span>{instruction}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        {/* Competition Details Card */}
-        <div className="bg-bg-secondary rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-semibold text-egyptian-gold mb-4">Competition Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-text-secondary">
-                <span className="font-semibold">Start Time:</span>
-                <br />
-                {formatDateTime(competition.startTime)}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-secondary">
-                <span className="font-semibold">Entry Deadline:</span>
-                <br />
-                {formatDateTime(competition.entranceDeadline)}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-secondary">
-                <span className="font-semibold">End Time:</span>
-                <br />
-                {formatDateTime(competition.absoluteEndTime)}
-              </p>
-            </div>
-            <div>
-              <p className="text-text-secondary">
-                <span className="font-semibold">Duration:</span>
-                <br />
-                {competition.competitionLength ? `${competition.competitionLength / 60} minutes` : 'Not set'}
-              </p>
-            </div>
+      {/* Competition Details Section */}
+      <div className="dashboard-section">
+        <h2 className="section-header">COMPETITION DETAILS</h2>
+        <div className="competition-details">
+          <div className="detail-item">
+            <span className="detail-label">Start Time:</span>
+            <span className="detail-value">{formatDateTime(competition.startTime)}</span>
+          </div>
+          <div className="detail-item">
+            <span className="detail-label">Entry Deadline:</span>
+            <span className="detail-value">{formatDateTime(competition.entranceDeadline)}</span>
+          </div>
+          <div className="detail-item">
+            <span className="detail-label">End Time:</span>
+            <span className="detail-value">{formatDateTime(competition.absoluteEndTime)}</span>
+          </div>
+          <div className="detail-item">
+            <span className="detail-label">Duration:</span>
+            <span className="detail-value">
+              {competition.competitionLength ? `${competition.competitionLength / 60} minutes` : 'Not set'}
+            </span>
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="dashboard-footer">
+        © 2025 EOCS Competition Platform. All rights reserved.
       </div>
     </div>
   );
