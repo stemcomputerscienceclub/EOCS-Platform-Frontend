@@ -112,20 +112,4 @@ $font-mono: var(--font-mono);
 
 $transition-fast: var(--transition-fast);
 $transition-normal: var(--transition-normal);
-$transition-slow: var(--transition-slow);
-
-// Tailwind CSS variables
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --color-egyptian-gold: 212, 175, 55;
-    --color-bg-primary: 26, 26, 26;
-    --color-bg-secondary: 36, 36, 36;
-    --color-text-primary: 255, 255, 255;
-    --color-text-secondary: 163, 163, 163;
-    --color-border-primary: 51, 51, 51;
-  }
-} 
+$transition-slow: var(--transition-slow); 

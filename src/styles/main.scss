@@ -1,3 +1,5 @@
+@use 'pages/not-found'; 
+
 // Base styles
 @import 'base/reset';
 @import 'base/variables';
@@ -26,6 +28,3 @@
 @import 'utilities/animations';
 @import 'utilities/spacing';
 @import 'utilities/responsive';
-
-// Competition page now uses Tailwind CSS
-@use 'pages/not-found'; 
