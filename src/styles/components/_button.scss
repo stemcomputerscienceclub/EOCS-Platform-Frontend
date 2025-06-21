@@ -1,31 +1,57 @@
 .btn {
-  @apply px-6 py-2 rounded-lg font-medium transition-all duration-200 ease-in-out;
+  padding: $spacing-md $spacing-xl;
+  border-radius: $radius-md;
+  font-weight: 500;
+  transition: all $transition-normal ease-in-out;
 
   &-primary {
-    @apply bg-egyptian-gold text-white hover:bg-opacity-90;
+    background-color: $color-egyptian-gold;
+    color: white;
+
+    &:hover {
+      opacity: 0.9;
+    }
     
     &:disabled {
-      @apply opacity-50 cursor-not-allowed;
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
   &-secondary {
-    @apply bg-bg-secondary text-text-primary border border-egyptian-gold hover:bg-egyptian-gold hover:text-white;
+    background-color: $color-bg-secondary;
+    color: $color-text-primary;
+    border: 1px solid $color-egyptian-gold;
+
+    &:hover {
+      background-color: $color-egyptian-gold;
+      color: white;
+    }
   }
 
   &-outline {
-    @apply border-2 border-egyptian-gold text-egyptian-gold hover:bg-egyptian-gold hover:text-white;
+    border: 2px solid $color-egyptian-gold;
+    color: $color-egyptian-gold;
+
+    &:hover {
+      background-color: $color-egyptian-gold;
+      color: white;
+    }
   }
 
   &-icon {
-    @apply inline-flex items-center space-x-2;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-sm;
   }
 
   &-sm {
-    @apply px-4 py-1.5 text-sm;
+    padding: $spacing-sm $spacing-md;
+    font-size: 0.875rem;
   }
 
   &-lg {
-    @apply px-8 py-3 text-lg;
+    padding: $spacing-lg $spacing-2xl;
+    font-size: 1.125rem;
   }
 } 
