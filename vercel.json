@@ -8,6 +8,6 @@
   "framework": "vite",
   "regions": ["sin1"],
   "env": {
-    "VITE_API_URL": "https://eocs-platform-backend.onrender.com"
+    "VITE_API_URL": "https://eocs-platform-backend.vercel.app/api"
   }
 } 
