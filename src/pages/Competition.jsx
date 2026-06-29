@@ -282,10 +282,7 @@ const Competition = () => {
 
     try {
       await handleAutoSubmit();
-      // Add a small delay before navigation to ensure submission is complete
-      setTimeout(() => {
-        navigate('/results');
-      }, 1000);
+      navigate('/results');
     } catch (error) {
       console.error('Error submitting answers:', error);
       setSubmitError('Failed to submit answers. Please try again.');

@@ -78,47 +78,39 @@ export default function useProctoring() {
   }, []);
 
   const stopRecording = useCallback(() => {
-    return new Promise((resolve) => {
-      let camDone = !cameraRecorderRef.current;
-      let scrDone = !screenRecorderRef.current;
+    const result = {
+      cameraBlob: cameraChunksRef.current.length
+        ? new Blob(cameraChunksRef.current, { type: getSupportedMimeType() })
+        : null,
+      screenBlob: screenChunksRef.current.length
+        ? new Blob(screenChunksRef.current, { type: getSupportedMimeType() })
+        : null,
+    };
 
-      const checkDone = () => {
-        if (camDone && scrDone) {
-          const result = {
-            cameraBlob: cameraChunksRef.current.length
-              ? new Blob(cameraChunksRef.current, { type: getSupportedMimeType() })
-              : null,
-            screenBlob: screenChunksRef.current.length
-              ? new Blob(screenChunksRef.current, { type: getSupportedMimeType() })
-              : null,
-          };
+    const camStream = cameraStreamRef.current;
+    const scrStream = screenStreamRef.current;
+    if (camStream) camStream.getTracks().forEach(t => t.stop());
+    if (scrStream) scrStream.getTracks().forEach(t => t.stop());
+    cameraStreamRef.current = null;
+    screenStreamRef.current = null;
 
-          const camStream = cameraStreamRef.current;
-          const scrStream = screenStreamRef.current;
-          if (camStream) camStream.getTracks().forEach(t => t.stop());
-          if (scrStream) scrStream.getTracks().forEach(t => t.stop());
-          cameraStreamRef.current = null;
-          screenStreamRef.current = null;
+    if (cameraRecorderRef.current) {
+      try { cameraRecorderRef.current.stop(); } catch {}
+      cameraRecorderRef.current = null;
+    }
+    if (screenRecorderRef.current) {
+      try { screenRecorderRef.current.stop(); } catch {}
+      screenRecorderRef.current = null;
+    }
 
-          setCameraActive(false);
-          setScreenActive(false);
-          setIsRecording(false);
-          resolve(result);
-        }
-      };
+    cameraChunksRef.current = [];
+    screenChunksRef.current = [];
 
-      if (cameraRecorderRef.current) {
-        cameraRecorderRef.current.onstop = () => { camDone = true; checkDone(); };
-        cameraRecorderRef.current.stop();
-      }
+    setCameraActive(false);
+    setScreenActive(false);
+    setIsRecording(false);
 
-      if (screenRecorderRef.current) {
-        screenRecorderRef.current.onstop = () => { scrDone = true; checkDone(); };
-        screenRecorderRef.current.stop();
-      }
-
-      checkDone();
-    });
+    return Promise.resolve(result);
   }, []);
 
   const cleanup = useCallback(() => {
