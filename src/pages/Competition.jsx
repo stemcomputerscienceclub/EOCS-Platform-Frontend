@@ -218,7 +218,7 @@ const Competition = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
-  const [uploadingRecordings, setUploadingRecordings] = useState(false);
+
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
@@ -257,22 +257,17 @@ const Competition = () => {
     setIsAutoSubmitting(true);
 
     try {
-      setUploadingRecordings(true);
       const { cameraBlob, screenBlob } = await stopRecording();
-      await Promise.race([
-        Promise.all([
-          uploadRecording(cameraBlob, 'camera'),
-          uploadRecording(screenBlob, 'screen'),
-        ]),
-        new Promise(r => setTimeout(r, 35000)),
-      ]);
-      setUploadingRecordings(false);
 
       const allAnswers = questions.map(q => ({
         questionId: q._id,
         answer: answers[q._id] || null
       }));
       await submitAllAndFinish(allAnswers);
+
+      // Upload recordings in background after submission
+      uploadRecording(cameraBlob, 'camera');
+      uploadRecording(screenBlob, 'screen');
     } catch (error) {
       console.error('Error during auto-submission:', error);
     } finally {
