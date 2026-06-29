@@ -232,15 +232,22 @@ const Competition = () => {
     if (!blob || blob.size < 100) return;
     try {
       const token = localStorage.getItem('token');
+      const presignCtrl = new AbortController();
+      const presignTimer = setTimeout(() => presignCtrl.abort(), 10000);
       const presignRes = await fetch(`${API_URL}/competition/upload-url?type=${type}`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: presignCtrl.signal,
       });
+      clearTimeout(presignTimer);
       if (!presignRes.ok) throw new Error('Failed to get upload URL');
       const { url } = await presignRes.json();
-      await fetch(url, { method: 'PUT', body: blob });
+      const putCtrl = new AbortController();
+      const putTimer = setTimeout(() => putCtrl.abort(), 30000);
+      await fetch(url, { method: 'PUT', body: blob, signal: putCtrl.signal });
+      clearTimeout(putTimer);
       console.log(`${type} recording uploaded directly to Spaces`);
     } catch (e) {
-      console.error(`Failed to upload ${type} recording:`, e);
+      if (e.name !== 'AbortError') console.error(`Failed to upload ${type} recording:`, e);
     }
   };
 
@@ -252,9 +259,12 @@ const Competition = () => {
     try {
       setUploadingRecordings(true);
       const { cameraBlob, screenBlob } = await stopRecording();
-      await Promise.all([
-        uploadRecording(cameraBlob, 'camera'),
-        uploadRecording(screenBlob, 'screen'),
+      await Promise.race([
+        Promise.all([
+          uploadRecording(cameraBlob, 'camera'),
+          uploadRecording(screenBlob, 'screen'),
+        ]),
+        new Promise(r => setTimeout(r, 35000)),
       ]);
       setUploadingRecordings(false);
 

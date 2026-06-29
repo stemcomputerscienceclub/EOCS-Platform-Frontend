@@ -42,6 +42,7 @@ export default function useProctoring() {
       const dispStream = await navigator.mediaDevices.getDisplayMedia({
         video: { width: 1920, height: 1080 },
         audio: false,
+        displaySurface: 'monitor',
       });
       screenStreamRef.current = dispStream;
       setScreenActive(true);
