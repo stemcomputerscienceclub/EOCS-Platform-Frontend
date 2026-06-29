@@ -75,78 +75,100 @@
 .competition-container {
   display: grid;
   grid-template-columns: 300px 1fr;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--color-bg-primary);
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  overflow: hidden;
 }
 
 /* Sidebar Styles */
 .competition-sidebar {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-sm);
   border: 2px solid var(--color-border-primary);
-  height: calc(100vh - 2 * var(--spacing-lg));
-  position: sticky;
-  top: var(--spacing-lg);
+  height: 100%;
+  overflow: hidden;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
   border-bottom: 2px solid var(--color-border-primary);
+  flex-shrink: 0;
 }
 
 .logo {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: bold;
   color: var(--color-egyptian-gold);
   letter-spacing: 1px;
 }
 
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-right: 2px;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 2px;
+}
+
 .sidebar-section {
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-primary);
+  flex-shrink: 0;
 }
 
 .section-title {
   color: var(--color-egyptian-gold);
-  font-size: var(--text-lg);
+  font-size: var(--text-sm);
   font-weight: 600;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Questions Grid */
 .questions-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-sm);
+  gap: 4px;
 }
 
 .question-button {
   aspect-ratio: 1;
-  border: 2px solid var(--color-border-primary);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  transition: all var(--transition-normal);
+  font-size: var(--text-sm);
+  transition: all var(--transition-fast);
   background: var(--color-bg-secondary);
   color: var(--color-text-secondary);
+  cursor: pointer;
 }
 
 .question-button:hover {
-  transform: translateY(-2px);
   border-color: var(--color-egyptian-gold);
 }
 
@@ -164,27 +186,29 @@
 
 .question-button.current {
   box-shadow: 0 0 0 2px var(--color-egyptian-gold);
-  transform: scale(1.1);
 }
 
-/* Status Legend */
-.status-legend {
+/* Status Legend & Progress inline */
+.status-row {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .status-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 4px;
   color: var(--color-text-secondary);
+  font-size: var(--text-xs);
 }
 
 .status-dot {
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .status-dot.answered {
@@ -199,36 +223,40 @@
   background: var(--color-text-tertiary);
 }
 
-/* Progress Stats */
+/* Progress Stats compact */
 .progress-stats {
   display: grid;
-  gap: var(--spacing-sm);
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
 
 .stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm);
+  padding: 4px 8px;
   background: var(--color-bg-secondary);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-primary);
+  font-size: var(--text-sm);
 }
 
 .stat-label {
   color: var(--color-text-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
 }
 
 .stat-value {
   color: var(--color-egyptian-gold);
   font-weight: 600;
+  font-size: var(--text-sm);
 }
 
 /* Submit Button */
 .submit-button {
-  margin-top: auto;
   width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 /* Main Content */
@@ -237,7 +265,17 @@
   border-radius: var(--radius-lg);
   border: 2px solid var(--color-border-primary);
   padding: var(--spacing-xl);
-  min-height: calc(100vh - 2 * var(--spacing-lg));
+  height: 100%;
+  overflow-y: auto;
+}
+
+.competition-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.competition-main::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 3px;
 }
 
 /* Question Container */
@@ -310,6 +348,8 @@
   color: var(--color-text-primary);
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Multiple Choice Options */
@@ -321,7 +361,7 @@
 
 .option-label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-md);
   padding: var(--spacing-md);
   border-radius: var(--radius-md);
@@ -366,6 +406,9 @@
   color: var(--color-text-secondary);
   font-size: var(--text-base);
   flex: 1;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.5;
 }
 
 /* Code Editor */
@@ -385,6 +428,14 @@
   background: var(--color-bg-tertiary);
   padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: 2px solid var(--color-border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.code-editor-actions {
+  display: flex;
+  align-items: center;
 }
 
 .language-badge {
@@ -392,6 +443,60 @@
   font-size: var(--text-sm);
   font-weight: 600;
   font-family: var(--font-mono);
+}
+
+.btn-sm {
+  padding: 4px 12px;
+  font-size: var(--text-sm);
+  min-height: auto;
+}
+
+.code-runner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.code-output {
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.code-output-header {
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-output pre {
+  margin: 0;
+  padding: var(--spacing-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.code-output-stdout {
+  color: var(--color-success);
+}
+
+.code-output-stderr {
+  color: var(--color-error);
+}
+
+.code-output-error {
+  color: var(--color-error);
 }
 
 .code-editor {
@@ -466,24 +571,27 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .competition-container {
-    grid-template-columns: 250px 1fr;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    grid-template-columns: 260px 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
   }
 
   .questions-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .competition-container {
     grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
   }
 
   .competition-sidebar {
-    position: static;
     height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .questions-grid {
@@ -520,25 +628,6 @@
 .not-found-text {
   color: var(--color-text-secondary);
   margin-bottom: var(--spacing-lg);
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .competition-container {
-    grid-template-columns: 1fr;
-  }
-
-  .competition-sidebar {
-    position: static;
-  }
-
-  .questions-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* Instructions Section */

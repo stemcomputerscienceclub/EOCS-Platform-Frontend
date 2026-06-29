@@ -1,5 +1,10 @@
 /* Import theme variables first */
 @import './theme.css';
+@import './components.css';
+@import './pages.css';
+@import './utilities.css';
+@import './animations.css';
+@import './logo.css';
 
 /* Base styles */
 :root {
@@ -364,9 +369,3 @@ h6 {
   }
 }
 
-/* Import other styles */
-@import './components.css';
-@import './pages.css';
-@import './utilities.css';
-@import './animations.css';
-@import './logo.css';

@@ -55,8 +55,13 @@ export const CompetitionProvider = ({ children }) => {
         api.get('/competition/config')
       ]);
 
-      if (activeParticipation && statusResponse.data.status === 'not_started') {
+      if (statusResponse.data.status === 'completed' || 
+          (activeParticipation && statusResponse.data.status === 'not_started')) {
         localStorage.removeItem('activeParticipation');
+        setHasActiveCompetition(false);
+        setCurrentCompetition(null);
+        setQuestions([]);
+        return false;
       }
 
       if (statusResponse.data.status === 'in_progress' && !activeParticipation) {
@@ -186,6 +191,21 @@ export const CompetitionProvider = ({ children }) => {
     }
   }, [checkStatus, fetchUpdates]);
 
+  // Clear competition state after finish
+  const finishCompetition = useCallback(() => {
+    setHasActiveCompetition(false);
+    setCurrentCompetition(null);
+    setQuestions([]);
+    localStorage.removeItem('activeParticipation');
+  }, []);
+
+  // Submit all answers and finish — uses the correctly-configured api instance
+  const submitAllAndFinish = useCallback(async (allAnswers) => {
+    const response = await api.post('/competition/finish', { answers: allAnswers });
+    finishCompetition();
+    return response.data;
+  }, [finishCompetition]);
+
   // Memoize the context value
   const value = useMemo(() => ({
     isConnected,
@@ -197,6 +217,8 @@ export const CompetitionProvider = ({ children }) => {
     submitAnswer,
     fetchUpdates,
     startCompetition,
+    finishCompetition,
+    submitAllAndFinish,
     hasActiveCompetition,
     questions,
     competitionLength
@@ -210,6 +232,8 @@ export const CompetitionProvider = ({ children }) => {
     submitAnswer,
     fetchUpdates,
     startCompetition,
+    finishCompetition,
+    submitAllAndFinish,
     hasActiveCompetition,
     questions,
     competitionLength

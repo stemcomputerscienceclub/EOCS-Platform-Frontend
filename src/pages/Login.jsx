@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
 import Navigation from '../components/Navigation';
@@ -95,6 +95,11 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
               />
+              <div className="text-right mt-1">
+                <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
           </div>
 
