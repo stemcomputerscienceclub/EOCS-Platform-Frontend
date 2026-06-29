@@ -4,6 +4,8 @@ import { useCompetition } from '../context/CompetitionContext';
 import { useAuth } from '../context/AuthContext';
 import Timer from '../components/Timer';
 import Loading from '../components/Loading';
+import useProctoring from '../hooks/useProctoring';
+import ProctoringOverlay from '../components/ProctoringOverlay';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -204,6 +206,11 @@ const Competition = () => {
     submitAllAndFinish
   } = useCompetition();
 
+  const {
+    webcamRef, cameraActive, screenActive, isRecording, error: proctorError,
+    startRecording, stopRecording, cleanup: cleanupProctoring
+  } = useProctoring();
+
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
@@ -211,6 +218,7 @@ const Competition = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [uploadingRecordings, setUploadingRecordings] = useState(false);
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
@@ -220,12 +228,36 @@ const Competition = () => {
     return startTime + duration;
   }, [currentCompetition?.startTime, competitionLength]);
 
+  const uploadRecording = async (blob, type) => {
+    if (!blob || blob.size < 100) return;
+    try {
+      const token = localStorage.getItem('token');
+      const presignRes = await fetch(`${API_URL}/competition/upload-url?type=${type}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!presignRes.ok) throw new Error('Failed to get upload URL');
+      const { url } = await presignRes.json();
+      await fetch(url, { method: 'PUT', body: blob });
+      console.log(`${type} recording uploaded directly to Spaces`);
+    } catch (e) {
+      console.error(`Failed to upload ${type} recording:`, e);
+    }
+  };
+
   // Handle auto submit function — sends ALL questions, null for unanswered
   const handleAutoSubmit = useCallback(async () => {
     if (isAutoSubmitting) return;
     setIsAutoSubmitting(true);
 
     try {
+      setUploadingRecordings(true);
+      const { cameraBlob, screenBlob } = await stopRecording();
+      await Promise.all([
+        uploadRecording(cameraBlob, 'camera'),
+        uploadRecording(screenBlob, 'screen'),
+      ]);
+      setUploadingRecordings(false);
+
       const allAnswers = questions.map(q => ({
         questionId: q._id,
         answer: answers[q._id] || null
@@ -236,7 +268,7 @@ const Competition = () => {
     } finally {
       setIsAutoSubmitting(false);
     }
-  }, [answers, questions, isAutoSubmitting, submitAllAndFinish]);
+  }, [answers, questions, isAutoSubmitting, submitAllAndFinish, stopRecording]);
 
   // Handle submit all function
   const handleSubmitAll = useCallback(async () => {
@@ -263,6 +295,17 @@ const Competition = () => {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (hasActiveCompetition && questions.length > 0 && !isRecording && !proctorError) {
+      const timer = setTimeout(() => startRecording(), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasActiveCompetition, questions, isRecording, proctorError, startRecording]);
+
+  useEffect(() => {
+    return () => { cleanupProctoring(); };
+  }, [cleanupProctoring]);
 
   useEffect(() => {
     if (!hasActiveCompetition) {
@@ -557,6 +600,14 @@ const Competition = () => {
           </div>
         )}
       </main>
+
+      <ProctoringOverlay
+        webcamRef={webcamRef}
+        cameraActive={cameraActive}
+        screenActive={screenActive}
+        isRecording={isRecording}
+        error={proctorError}
+      />
 
       {/* Warning Dialog */}
       <CustomAlert
