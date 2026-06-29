@@ -1,12 +1,7 @@
 import axios from 'axios';
 
-// Determine the API URL based on the environment
 const getBaseURL = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'https://eocs-platform-backend.onrender.com/api';
-  }
-  // For production on Vercel
-  return `${process.env.NEXT_PUBLIC_API_URL}/api` || 'https://eocs-platform-backend.onrender.com/api';
+  return import.meta.env.VITE_API_URL || '/api';
 };
 
 const api = axios.create({
@@ -16,8 +11,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  // Increase timeout for development
-  timeout: process.env.NODE_ENV === 'development' ? 10000 : 5000
+  timeout: 30000
 });
 
 // Add request interceptor for handling errors

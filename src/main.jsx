@@ -16,10 +16,8 @@ import './styles/logo.css';
 import './index.css';
 
 // Configure axios defaults
-const isProduction = import.meta.env.PROD;
-axios.defaults.baseURL = isProduction 
-  ? 'https://eocs-platform-backend.onrender.com'
-  : 'http://localhost:5000';
+const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
 
 // Add request interceptor for authorization
