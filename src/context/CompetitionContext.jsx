@@ -98,7 +98,7 @@ export const CompetitionProvider = ({ children }) => {
 
   // Memoize the fetch updates function
   const fetchUpdates = useCallback(async () => {
-    if (!user || !hasActiveCompetition) return;
+    if (!user) return;
 
     try {
       const response = await api.get('/competition/progress');
@@ -125,7 +125,7 @@ export const CompetitionProvider = ({ children }) => {
       }
       setLoading(false);
     }
-  }, [user, hasActiveCompetition]);
+  }, [user]);
 
   // Set up polling with optimizations
   useEffect(() => {
