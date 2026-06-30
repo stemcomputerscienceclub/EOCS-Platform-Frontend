@@ -250,6 +250,7 @@ const Competition = () => {
   const navigatingToResults = useRef(false);
   const prevCameraActiveRef = useRef(cameraActive);
   const prevAudioActiveRef = useRef(audioActive);
+  const restoreDoneRef = useRef(false);
 
 
 
