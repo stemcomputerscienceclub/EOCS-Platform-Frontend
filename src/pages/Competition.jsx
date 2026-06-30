@@ -6,6 +6,7 @@ import Timer from '../components/Timer';
 import Loading from '../components/Loading';
 import useProctoring from '../hooks/useProctoring';
 import ProctoringOverlay from '../components/ProctoringOverlay';
+import LatexRenderer from '../components/LatexRenderer';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -207,8 +208,9 @@ const Competition = () => {
   } = useCompetition();
 
   const {
-    webcamRef, cameraActive, screenActive, isRecording, error: proctorError,
-    startRecording, stopRecording, cleanup: cleanupProctoring
+    webcamRef, cameraActive, audioActive,
+    error: proctorError, audioError,
+    startCapture, stopCapture, cleanup: cleanupProctoring
   } = useProctoring();
 
   const [answers, setAnswers] = useState({});
@@ -218,6 +220,8 @@ const Competition = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const navigatingToResults = useRef(false);
+
 
 
   // Memoize the end time calculation
@@ -228,69 +232,46 @@ const Competition = () => {
     return startTime + duration;
   }, [currentCompetition?.startTime, competitionLength]);
 
-  const uploadRecording = async (blob, type) => {
-    if (!blob || blob.size < 100) return;
-    try {
-      const token = localStorage.getItem('token');
-      const presignCtrl = new AbortController();
-      const presignTimer = setTimeout(() => presignCtrl.abort(), 10000);
-      const presignRes = await fetch(`${API_URL}/competition/upload-url?type=${type}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: presignCtrl.signal,
-      });
-      clearTimeout(presignTimer);
-      if (!presignRes.ok) throw new Error('Failed to get upload URL');
-      const { url } = await presignRes.json();
-      const putCtrl = new AbortController();
-      const putTimer = setTimeout(() => putCtrl.abort(), 30000);
-      await fetch(url, { method: 'PUT', body: blob, signal: putCtrl.signal });
-      clearTimeout(putTimer);
-      console.log(`${type} recording uploaded directly to Spaces`);
-    } catch (e) {
-      if (e.name !== 'AbortError') console.error(`Failed to upload ${type} recording:`, e);
-    }
-  };
+  // Stop camera + submit answers
+  const stopAndSubmit = useCallback(async () => {
+    stopCapture();
+    const allAnswers = questions.map(q => ({
+      questionId: q._id,
+      answer: answers[q._id] || null
+    }));
+    await submitAllAndFinish(allAnswers);
+  }, [questions, answers, stopCapture, submitAllAndFinish]);
 
-  // Handle auto submit function — sends ALL questions, null for unanswered
+  // Handle auto submit (beforeunload / timeup) — submit only
   const handleAutoSubmit = useCallback(async () => {
     if (isAutoSubmitting) return;
     setIsAutoSubmitting(true);
-
     try {
-      const { cameraBlob, screenBlob } = await stopRecording();
-
-      const allAnswers = questions.map(q => ({
-        questionId: q._id,
-        answer: answers[q._id] || null
-      }));
-      await submitAllAndFinish(allAnswers);
-
-      // Upload recordings in background after submission
-      uploadRecording(cameraBlob, 'camera');
-      uploadRecording(screenBlob, 'screen');
+      await stopAndSubmit();
     } catch (error) {
       console.error('Error during auto-submission:', error);
     } finally {
       setIsAutoSubmitting(false);
     }
-  }, [answers, questions, isAutoSubmitting, submitAllAndFinish, stopRecording]);
+  }, [isAutoSubmitting, stopAndSubmit]);
 
-  // Handle submit all function
+  // Handle submit all — submit + navigate to results
   const handleSubmitAll = useCallback(async () => {
     if (isSubmitting || isAutoSubmitting) return;
     setIsSubmitting(true);
-
+    navigatingToResults.current = true;
     try {
-      await handleAutoSubmit();
+      await stopAndSubmit();
       navigate('/results');
     } catch (error) {
       console.error('Error submitting answers:', error);
       setSubmitError('Failed to submit answers. Please try again.');
+      navigatingToResults.current = false;
     } finally {
       setIsSubmitting(false);
       setShowSubmitConfirm(false);
     }
-  }, [isSubmitting, isAutoSubmitting, handleAutoSubmit, navigate]);
+  }, [isSubmitting, isAutoSubmitting, stopAndSubmit, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -299,18 +280,18 @@ const Competition = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (hasActiveCompetition && questions.length > 0 && !isRecording && !proctorError) {
-      const timer = setTimeout(() => startRecording(), 1000);
+    if (hasActiveCompetition && questions.length > 0 && !cameraActive && !proctorError) {
+      const timer = setTimeout(() => startCapture(), 1000);
       return () => clearTimeout(timer);
     }
-  }, [hasActiveCompetition, questions, isRecording, proctorError, startRecording]);
+  }, [hasActiveCompetition, questions, cameraActive, proctorError, startCapture]);
 
   useEffect(() => {
     return () => { cleanupProctoring(); };
   }, [cleanupProctoring]);
 
   useEffect(() => {
-    if (!hasActiveCompetition) {
+    if (!hasActiveCompetition && !navigatingToResults.current) {
       navigate('/dashboard');
     }
   }, [hasActiveCompetition, navigate]);
@@ -557,7 +538,7 @@ const Competition = () => {
             </div>
 
             <div className="question-content">
-              <div className="question-text" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+              <LatexRenderer html={currentQuestion.text} className="question-text" as="div" />
               
               {currentQuestion.type === 'code' ? (
                 <CodeRunner
@@ -576,7 +557,7 @@ const Competition = () => {
                         checked={answers[currentQuestion._id] === option}
                         onChange={() => handleAnswerChange(currentQuestion._id, option)}
                       />
-                      <span className="option-text">{option}</span>
+                      <LatexRenderer html={option} className="option-text" />
                     </label>
                   ))}
                 </div>
@@ -606,9 +587,9 @@ const Competition = () => {
       <ProctoringOverlay
         webcamRef={webcamRef}
         cameraActive={cameraActive}
-        screenActive={screenActive}
-        isRecording={isRecording}
+        audioActive={audioActive}
         error={proctorError}
+        audioError={audioError}
       />
 
       {/* Warning Dialog */}

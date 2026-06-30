@@ -14,6 +14,7 @@ import './styles/utilities.css';
 import './styles/pages.css';
 import './styles/logo.css';
 import './index.css';
+import 'katex/dist/katex.min.css';
 
 // Configure axios defaults
 const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
