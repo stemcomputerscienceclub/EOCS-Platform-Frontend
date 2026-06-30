@@ -99,6 +99,22 @@ export default function useProctoring() {
         const video = webcamRef.current;
         if (!video || !video.videoWidth) return;
 
+        // Detect if camera track ended unexpectedly (e.g. permission revoked)
+        const videoTrack = streamRef.current?.getVideoTracks()[0];
+        if (videoTrack && videoTrack.readyState === 'ended') {
+          stopCapture();
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          return;
+        }
+        const audioTrack = streamRef.current?.getAudioTracks()[0];
+        if (audioTrack && audioTrack.readyState === 'ended') {
+          stopCapture();
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          return;
+        }
+
         canvasRef.current.width = video.videoWidth;
         canvasRef.current.height = video.videoHeight;
         canvasRef.current.getContext('2d').drawImage(video, 0, 0);
