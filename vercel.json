@@ -8,6 +8,6 @@
   "framework": "vite",
   "regions": ["sin1"],
   "env": {
-    "VITE_API_URL": "https://eocs-platform-backend.vercel.app/api"
+    "VITE_API_URL": "https://competition.eocs.net/api"
   }
 } 
