@@ -357,32 +357,27 @@ const Competition = () => {
     }
   }, [hasActiveCompetition, navigate, restoring, loading]);
 
-  // Give warning + try to restart when camera or audio is lost unexpectedly
+  // Give warning when camera or audio is lost unexpectedly
   useEffect(() => {
     const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
     const audioJustStopped = prevAudioActiveRef.current && !audioActive;
+    prevCameraActiveRef.current = cameraActive;
+    prevAudioActiveRef.current = audioActive;
+
+    if (cameraJustStopped || audioJustStopped) {
+      triggerWarning('proctoring_stopped', 'Camera or audio was turned off');
+    }
+  }, [cameraActive, audioActive, triggerWarning]);
+
   // Restore saved state on mount
   useEffect(() => {
-    if (!loading && hasActiveCompetition !== undefined) {
-      if (hasActiveCompetition && questions.length === 0 && !restoring) {
-        const savedQuestions = sessionStorage.getItem('competition_questions');
-        if (!savedQuestions) {
-          fetch(`${API_URL}/competition/results`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          })
-            .then(r => r.json())
-            .then(data => {
-              if (data.questions) {
-                sessionStorage.setItem('competition_questions', JSON.stringify(data.questions));
-              }
-            })
-            .catch(() => {});
-        }
-      }
-      const timer = setTimeout(() => setRestoring(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, hasActiveCompetition, questions, restoring]);
+    if (restoreDoneRef.current) return;
+    if (loading) return;
+    if (hasActiveCompetition === undefined) return;
+
+    restoreDoneRef.current = true;
+    setRestoring(false);
+  }, [loading, hasActiveCompetition]);
 
   // Save state to sessionStorage on changes
   useEffect(() => {
@@ -396,14 +391,6 @@ const Competition = () => {
     };
     sessionStorage.setItem('competition_state', JSON.stringify(state));
   }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, restoring]);
-
-  prevCameraActiveRef.current = cameraActive;
-  prevAudioActiveRef.current = audioActive;
-
-    if (cameraJustStopped || audioJustStopped) {
-      triggerWarning('proctoring_stopped', 'Camera or audio was turned off');
-    }
-  }, [cameraActive, audioActive, triggerWarning]);
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
