@@ -245,19 +245,6 @@ const Competition = () => {
     await submitAllAndFinish(allAnswers, method || 'normal');
   }, [questions, answers, stopCapture, submitAllAndFinish]);
 
-  // Handle auto submit (beforeunload / timeup) — submit only
-  const handleAutoSubmit = useCallback(async () => {
-    if (isAutoSubmitting) return;
-    setIsAutoSubmitting(true);
-    try {
-      await stopAndSubmit('normal');
-    } catch (error) {
-      console.error('Error during auto-submission:', error);
-    } finally {
-      setIsAutoSubmitting(false);
-    }
-  }, [isAutoSubmitting, stopAndSubmit]);
-
   // Handle submit all — submit + navigate to results
   const handleSubmitAll = useCallback(async () => {
     if (isSubmitting || isAutoSubmitting) return;
@@ -424,18 +411,16 @@ const Competition = () => {
     }
   }, [warningCount, stopAndSubmit, navigate]);
 
-  // Handle page refresh/close
+  // Warn on refresh/close — no auto-submit
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       event.preventDefault();
       event.returnValue = '';
-      handleAutoSubmit();
-      return 'Warning: Leaving this page will submit all your current answers. Are you sure you want to proceed?';
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [handleAutoSubmit]);
+  }, []);
 
   if (loading) {
     return <Loading fullScreen />;
