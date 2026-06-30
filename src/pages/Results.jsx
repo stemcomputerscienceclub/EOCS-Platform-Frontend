@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import ParticleNetwork from '../components/ParticleNetwork';
 
 const Results = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: '#1c1c1c', minHeight: 'calc(100vh - 4rem)' }}>
-      <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ background: '#1c1c1c', minHeight: 'calc(100vh - 4rem)', position: 'relative' }}>
+      <ParticleNetwork />
+      <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '2rem 1rem', position: 'relative', zIndex: 1 }}>
         <div style={{
           background: '#2a2a2a',
           borderRadius: '0.75rem',
@@ -25,7 +27,7 @@ const Results = () => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <p style={{ fontSize: '1.25rem', color: '#b0b0b0' }}>
-              Thank you for being part of EOCS 2025.
+              Thank you for being part of EOCS 2026.
             </p>
             <p style={{ color: 'gray' }}>
               Your participation has been recorded. Results will be announced soon.

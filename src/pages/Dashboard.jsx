@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCompetition } from '../context/CompetitionContext';
 import axios from 'axios';
+import ParticleNetwork from '../components/ParticleNetwork';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -359,7 +360,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{ position: 'relative' }}>
+      <ParticleNetwork />
       {/* Header */}
       <div className="dashboard-header">
         <h1 className="dashboard-title">{competition.title}</h1>
@@ -537,7 +539,7 @@ const Dashboard = () => {
 
       {/* Footer */}
       <div className="dashboard-footer">
-        © 2025 EOCS Competition Platform. All rights reserved.
+        © 2026 EOCS Competition Platform. All rights reserved.
       </div>
     </div>
   );

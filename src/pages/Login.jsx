@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
 import Navigation from '../components/Navigation';
+import ParticleNetwork from '../components/ParticleNetwork';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -54,12 +55,36 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen login-page flex items-center justify-center bg-bg-primary">
-      <div className="card max-w-md w-full p-8">
+    <div className="min-h-screen login-page flex items-center justify-center bg-bg-primary" style={{ position: 'relative' }}>
+      <ParticleNetwork />
+      <div className="flex flex-col items-center" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="text-center mb-8">
+          <h1 style={{
+            fontFamily: "'Orbitron', sans-serif",
+            fontSize: '2.5rem',
+            fontWeight: 700,
+            color: '#d4af37',
+            textShadow: '0 0 20px rgba(212, 175, 55, 0.3)',
+            marginBottom: '0.5rem',
+          }}>
+            Welcome to EOCS
+          </h1>
+          <p style={{
+            fontFamily: "'Orbitron', sans-serif",
+            fontSize: '0.85rem',
+            fontWeight: 400,
+            color: '#b0b0b0',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+          }}>
+            Egyptian Olympiad in Computational Science
+          </p>
+        </div>
+        <div className="card max-w-md w-full p-8">
 
-        <h2 className="section-title text-center glowing-text mb-8">
-          Login to Your Account
-        </h2>
+          <h2 className="section-title text-center glowing-text mb-8">
+            Login to Your Account
+          </h2>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
@@ -119,6 +144,7 @@ const Login = () => {
           </button>
         </form>
 
+      </div>
       </div>
     </div>
   );

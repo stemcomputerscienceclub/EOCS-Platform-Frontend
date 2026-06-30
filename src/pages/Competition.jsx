@@ -221,6 +221,9 @@ const Competition = () => {
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const navigatingToResults = useRef(false);
+  const isIntentionalStopRef = useRef(false);
+  const prevCameraActiveRef = useRef(cameraActive);
+  const prevAudioActiveRef = useRef(audioActive);
 
 
 
@@ -234,12 +237,14 @@ const Competition = () => {
 
   // Stop camera + submit answers
   const stopAndSubmit = useCallback(async () => {
+    isIntentionalStopRef.current = true;
     stopCapture();
     const allAnswers = questions.map(q => ({
       questionId: q._id,
       answer: answers[q._id] || null
     }));
     await submitAllAndFinish(allAnswers);
+    isIntentionalStopRef.current = false;
   }, [questions, answers, stopCapture, submitAllAndFinish]);
 
   // Handle auto submit (beforeunload / timeup) — submit only
@@ -295,6 +300,18 @@ const Competition = () => {
       navigate('/dashboard');
     }
   }, [hasActiveCompetition, navigate]);
+
+  // Auto-submit when camera or audio is lost unexpectedly
+  useEffect(() => {
+    const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
+    const audioJustStopped = prevAudioActiveRef.current && !audioActive;
+    prevCameraActiveRef.current = cameraActive;
+    prevAudioActiveRef.current = audioActive;
+
+    if ((cameraJustStopped || audioJustStopped) && !isIntentionalStopRef.current) {
+      handleAutoSubmit();
+    }
+  }, [cameraActive, audioActive, handleAutoSubmit]);
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {

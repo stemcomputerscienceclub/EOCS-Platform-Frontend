@@ -31,6 +31,18 @@ export default function useProctoring() {
       });
       streamRef.current = stream;
       canvasRef.current = document.createElement('canvas');
+
+      stream.getVideoTracks().forEach(track => {
+        track.addEventListener('ended', () => {
+          setTimeout(() => stopCapture(), 0);
+        });
+      });
+      stream.getAudioTracks().forEach(track => {
+        track.addEventListener('ended', () => {
+          setTimeout(() => stopCapture(), 0);
+        });
+      });
+
       setCameraActive(true);
 
       // Start audio recorder (15s chunks, each uploaded as a separate audio file)
