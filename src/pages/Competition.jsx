@@ -220,8 +220,8 @@ const Competition = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
   const navigatingToResults = useRef(false);
-  const isIntentionalStopRef = useRef(false);
   const prevCameraActiveRef = useRef(cameraActive);
   const prevAudioActiveRef = useRef(audioActive);
 
@@ -236,15 +236,13 @@ const Competition = () => {
   }, [currentCompetition?.startTime, competitionLength]);
 
   // Stop camera + submit answers
-  const stopAndSubmit = useCallback(async () => {
-    isIntentionalStopRef.current = true;
+  const stopAndSubmit = useCallback(async (method) => {
     stopCapture();
     const allAnswers = questions.map(q => ({
       questionId: q._id,
       answer: answers[q._id] || null
     }));
-    await submitAllAndFinish(allAnswers);
-    isIntentionalStopRef.current = false;
+    await submitAllAndFinish(allAnswers, method || 'normal');
   }, [questions, answers, stopCapture, submitAllAndFinish]);
 
   // Handle auto submit (beforeunload / timeup) — submit only
@@ -252,7 +250,7 @@ const Competition = () => {
     if (isAutoSubmitting) return;
     setIsAutoSubmitting(true);
     try {
-      await stopAndSubmit();
+      await stopAndSubmit('normal');
     } catch (error) {
       console.error('Error during auto-submission:', error);
     } finally {
@@ -266,7 +264,7 @@ const Competition = () => {
     setIsSubmitting(true);
     navigatingToResults.current = true;
     try {
-      await stopAndSubmit();
+      await stopAndSubmit('normal');
       navigate('/results');
     } catch (error) {
       console.error('Error submitting answers:', error);
@@ -285,11 +283,16 @@ const Competition = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (hasActiveCompetition && questions.length > 0 && !cameraActive && !proctorError) {
-      const timer = setTimeout(() => startCapture(), 1000);
+    if (!hasActiveCompetition || questions.length === 0) return;
+
+    if (!cameraActive) {
+      const timer = setTimeout(() => {
+        startCapture();
+        setRetryTrigger(t => t + 1);
+      }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [hasActiveCompetition, questions, cameraActive, proctorError, startCapture]);
+  }, [hasActiveCompetition, questions, cameraActive, startCapture, retryTrigger]);
 
   useEffect(() => {
     return () => { cleanupProctoring(); };
@@ -301,17 +304,17 @@ const Competition = () => {
     }
   }, [hasActiveCompetition, navigate]);
 
-  // Auto-submit when camera or audio is lost unexpectedly
+  // Give warning + try to restart when camera or audio is lost unexpectedly
   useEffect(() => {
     const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
     const audioJustStopped = prevAudioActiveRef.current && !audioActive;
     prevCameraActiveRef.current = cameraActive;
     prevAudioActiveRef.current = audioActive;
 
-    if ((cameraJustStopped || audioJustStopped) && !isIntentionalStopRef.current) {
-      handleAutoSubmit();
+    if (cameraJustStopped || audioJustStopped) {
+      triggerWarning('proctoring_stopped', 'Camera or audio was turned off');
     }
-  }, [cameraActive, audioActive, handleAutoSubmit]);
+  }, [cameraActive, audioActive, triggerWarning]);
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
@@ -413,9 +416,13 @@ const Competition = () => {
 
   useEffect(() => {
     if (warningCount >= maxWarnings) {
-      handleSubmitAll();
+      navigatingToResults.current = true;
+      (async () => {
+        await stopAndSubmit('cheating');
+        navigate('/results');
+      })();
     }
-  }, [warningCount, handleSubmitAll]);
+  }, [warningCount, stopAndSubmit, navigate]);
 
   // Handle page refresh/close
   useEffect(() => {

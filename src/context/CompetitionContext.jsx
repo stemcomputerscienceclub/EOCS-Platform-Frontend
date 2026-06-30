@@ -201,8 +201,8 @@ export const CompetitionProvider = ({ children }) => {
   }, []);
 
   // Submit all answers and finish — uses the correctly-configured api instance
-  const submitAllAndFinish = useCallback(async (allAnswers) => {
-    const response = await api.post('/competition/finish', { answers: allAnswers });
+  const submitAllAndFinish = useCallback(async (allAnswers, submissionMethod = 'normal') => {
+    const response = await api.post('/competition/finish', { answers: allAnswers, submissionMethod });
     finishCompetition();
     return response.data;
   }, [finishCompetition]);
