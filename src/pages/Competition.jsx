@@ -217,7 +217,7 @@ const Competition = () => {
 
   const [answers, setAnswers] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return {};
-    const saved = sessionStorage.getItem('competition_state');
+    const saved = localStorage.getItem('competition_state');
     if (saved) {
       const state = JSON.parse(saved);
       return state.answers || {};
@@ -226,7 +226,7 @@ const Competition = () => {
   });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return 0;
-    const saved = sessionStorage.getItem('competition_state');
+    const saved = localStorage.getItem('competition_state');
     if (saved) {
       const state = JSON.parse(saved);
       return state.currentQuestionIndex || 0;
@@ -235,7 +235,7 @@ const Competition = () => {
   });
   const [flaggedQuestions, setFlaggedQuestions] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return new Set();
-    const saved = sessionStorage.getItem('competition_state');
+    const saved = localStorage.getItem('competition_state');
     if (saved) {
       const state = JSON.parse(saved);
       return new Set(state.flagged || []);
@@ -293,7 +293,7 @@ const Competition = () => {
   // Anti-cheat system — must be defined before any effects that use it
   const [warningCount, setWarningCount] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return 0;
-    const saved = sessionStorage.getItem('competition_state');
+    const saved = localStorage.getItem('competition_state');
     if (saved) {
       const state = JSON.parse(saved);
       return state.warningCount || 0;
@@ -380,7 +380,7 @@ const Competition = () => {
     setRestoring(false);
   }, [loading, hasActiveCompetition]);
 
-  // Save state to sessionStorage on changes
+  // Save state to localStorage on changes
   useEffect(() => {
     if (restoring) return;
     if (!localStorage.getItem('activeParticipation')) return;
@@ -390,7 +390,7 @@ const Competition = () => {
       flagged: [...flaggedQuestions],
       warningCount,
     };
-    sessionStorage.setItem('competition_state', JSON.stringify(state));
+    localStorage.setItem('competition_state', JSON.stringify(state));
   }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, restoring]);
 
   // Handle answer changes

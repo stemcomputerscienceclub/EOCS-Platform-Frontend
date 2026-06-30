@@ -59,8 +59,8 @@ export const CompetitionProvider = ({ children }) => {
       if (statusResponse.data.status === 'completed' || 
           (activeParticipation && statusResponse.data.status === 'not_started')) {
         localStorage.removeItem('activeParticipation');
-        sessionStorage.removeItem('competition_state');
-        sessionStorage.removeItem('competition_questions');
+        localStorage.removeItem('competition_state');
+        localStorage.removeItem('competition_questions');
         setHasActiveCompetition(false);
         setCurrentCompetition(null);
         setQuestions([]);
@@ -68,13 +68,17 @@ export const CompetitionProvider = ({ children }) => {
       }
 
       if (statusResponse.data.status === 'active' || statusResponse.data.status === 'in_progress') {
-        if (activeParticipation) {
-          setHasActiveCompetition(true);
-          const savedQuestions = sessionStorage.getItem('competition_questions');
-          if (savedQuestions) setQuestions(JSON.parse(savedQuestions));
+        // Ensure activeParticipation is set in localStorage even on browser reopen
+        if (!activeParticipation && statusResponse.data.startTime) {
+          localStorage.setItem('activeParticipation', 'restored');
+        }
+        setHasActiveCompetition(true);
+        const savedQuestions = localStorage.getItem('competition_questions');
+        if (savedQuestions) {
+          setQuestions(JSON.parse(savedQuestions));
         } else {
-          setError('Another user is already participating in this competition');
-          return false;
+          // Questions not in localStorage - keep loading so fetchUpdates can restore them
+          setLoading(true);
         }
       }
 
@@ -110,6 +114,17 @@ export const CompetitionProvider = ({ children }) => {
         }
         return prev;
       });
+
+      // Restore questions from progress response if not in localStorage
+      if (response.data.questions && response.data.questions.length > 0) {
+        setQuestions(prev => {
+          if (prev.length === 0) {
+            localStorage.setItem('competition_questions', JSON.stringify(response.data.questions));
+            return response.data.questions;
+          }
+          return prev;
+        });
+      }
       
       setLastUpdate(new Date());
       setIsConnected(true);
@@ -165,7 +180,7 @@ export const CompetitionProvider = ({ children }) => {
       
       if (response.data.questions && response.data.questions.length > 0) {
         setQuestions(response.data.questions);
-        sessionStorage.setItem('competition_questions', JSON.stringify(response.data.questions));
+        localStorage.setItem('competition_questions', JSON.stringify(response.data.questions));
         setCurrentCompetition(response.data.participation);
         setHasActiveCompetition(true);
         localStorage.setItem('activeParticipation', response.data.participation.id);
@@ -207,8 +222,8 @@ export const CompetitionProvider = ({ children }) => {
     setCurrentCompetition(null);
     setQuestions([]);
     localStorage.removeItem('activeParticipation');
-    sessionStorage.removeItem('competition_state');
-    sessionStorage.removeItem('competition_questions');
+    localStorage.removeItem('competition_state');
+    localStorage.removeItem('competition_questions');
   }, []);
 
   // Submit all answers and finish — uses the correctly-configured api instance
