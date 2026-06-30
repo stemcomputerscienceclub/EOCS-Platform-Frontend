@@ -67,7 +67,7 @@ export const CompetitionProvider = ({ children }) => {
         return false;
       }
 
-      if (statusResponse.data.status === 'in_progress') {
+      if (statusResponse.data.status === 'active' || statusResponse.data.status === 'in_progress') {
         if (activeParticipation) {
           setHasActiveCompetition(true);
           const savedQuestions = sessionStorage.getItem('competition_questions');
@@ -157,7 +157,7 @@ export const CompetitionProvider = ({ children }) => {
   const startCompetition = useCallback(async () => {
     try {
       const statusResponse = await api.get('/competition/status');
-      if (statusResponse.data.status === 'in_progress') {
+      if (statusResponse.data.status === 'in_progress' || statusResponse.data.status === 'active') {
         throw new Error('You already have an active competition session');
       }
 

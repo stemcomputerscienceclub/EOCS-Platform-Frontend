@@ -159,7 +159,7 @@ const Dashboard = () => {
       // Handle redirects based on status
       if (statusResponse.status === 'completed') {
         navigate('/results');
-      } else if (statusResponse.status === 'active') {
+      } else if (statusResponse.status === 'active' || statusResponse.status === 'in_progress') {
         navigate('/competition');
       }
       
