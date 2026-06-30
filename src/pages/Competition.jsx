@@ -213,9 +213,35 @@ const Competition = () => {
     startCapture, stopCapture, cleanup: cleanupProctoring
   } = useProctoring();
 
-  const [answers, setAnswers] = useState({});
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [flaggedQuestions, setFlaggedQuestions] = useState(new Set());
+  const [restoring, setRestoring] = useState(true);
+
+  const [answers, setAnswers] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return {};
+    const saved = sessionStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.answers || {};
+    }
+    return {};
+  });
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return 0;
+    const saved = sessionStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.currentQuestionIndex || 0;
+    }
+    return 0;
+  });
+  const [flaggedQuestions, setFlaggedQuestions] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return new Set();
+    const saved = sessionStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return new Set(state.flagged || []);
+    }
+    return new Set();
+  });
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
@@ -264,7 +290,15 @@ const Competition = () => {
   }, [isSubmitting, isAutoSubmitting, stopAndSubmit, navigate]);
 
   // Anti-cheat system — must be defined before any effects that use it
-  const [warningCount, setWarningCount] = useState(0);
+  const [warningCount, setWarningCount] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return 0;
+    const saved = sessionStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.warningCount || 0;
+    }
+    return 0;
+  });
   const [showWarning, setShowWarning] = useState(false);
   const [lastWarning, setLastWarning] = useState({ type: '', count: 0 });
   const maxWarnings = 3;
@@ -317,17 +351,54 @@ const Competition = () => {
   }, [cleanupProctoring]);
 
   useEffect(() => {
+    if (restoring || loading) return;
     if (!hasActiveCompetition && !navigatingToResults.current) {
       navigate('/dashboard');
     }
-  }, [hasActiveCompetition, navigate]);
+  }, [hasActiveCompetition, navigate, restoring, loading]);
 
   // Give warning + try to restart when camera or audio is lost unexpectedly
   useEffect(() => {
     const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
     const audioJustStopped = prevAudioActiveRef.current && !audioActive;
-    prevCameraActiveRef.current = cameraActive;
-    prevAudioActiveRef.current = audioActive;
+  // Restore saved state on mount
+  useEffect(() => {
+    if (!loading && hasActiveCompetition !== undefined) {
+      if (hasActiveCompetition && questions.length === 0 && !restoring) {
+        const savedQuestions = sessionStorage.getItem('competition_questions');
+        if (!savedQuestions) {
+          fetch(`${API_URL}/competition/results`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          })
+            .then(r => r.json())
+            .then(data => {
+              if (data.questions) {
+                sessionStorage.setItem('competition_questions', JSON.stringify(data.questions));
+              }
+            })
+            .catch(() => {});
+        }
+      }
+      const timer = setTimeout(() => setRestoring(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, hasActiveCompetition, questions, restoring]);
+
+  // Save state to sessionStorage on changes
+  useEffect(() => {
+    if (restoring) return;
+    if (!localStorage.getItem('activeParticipation')) return;
+    const state = {
+      answers,
+      currentQuestionIndex,
+      flagged: [...flaggedQuestions],
+      warningCount,
+    };
+    sessionStorage.setItem('competition_state', JSON.stringify(state));
+  }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, restoring]);
+
+  prevCameraActiveRef.current = cameraActive;
+  prevAudioActiveRef.current = audioActive;
 
     if (cameraJustStopped || audioJustStopped) {
       triggerWarning('proctoring_stopped', 'Camera or audio was turned off');
@@ -422,7 +493,7 @@ const Competition = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  if (loading) {
+  if (loading || restoring) {
     return <Loading fullScreen />;
   }
 

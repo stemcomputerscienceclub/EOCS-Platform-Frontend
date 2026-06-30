@@ -59,15 +59,23 @@ export const CompetitionProvider = ({ children }) => {
       if (statusResponse.data.status === 'completed' || 
           (activeParticipation && statusResponse.data.status === 'not_started')) {
         localStorage.removeItem('activeParticipation');
+        sessionStorage.removeItem('competition_state');
+        sessionStorage.removeItem('competition_questions');
         setHasActiveCompetition(false);
         setCurrentCompetition(null);
         setQuestions([]);
         return false;
       }
 
-      if (statusResponse.data.status === 'in_progress' && !activeParticipation) {
-        setError('Another user is already participating in this competition');
-        return false;
+      if (statusResponse.data.status === 'in_progress') {
+        if (activeParticipation) {
+          setHasActiveCompetition(true);
+          const savedQuestions = sessionStorage.getItem('competition_questions');
+          if (savedQuestions) setQuestions(JSON.parse(savedQuestions));
+        } else {
+          setError('Another user is already participating in this competition');
+          return false;
+        }
       }
 
       // Store the competition length from the server
@@ -157,6 +165,7 @@ export const CompetitionProvider = ({ children }) => {
       
       if (response.data.questions && response.data.questions.length > 0) {
         setQuestions(response.data.questions);
+        sessionStorage.setItem('competition_questions', JSON.stringify(response.data.questions));
         setCurrentCompetition(response.data.participation);
         setHasActiveCompetition(true);
         localStorage.setItem('activeParticipation', response.data.participation.id);
@@ -198,6 +207,8 @@ export const CompetitionProvider = ({ children }) => {
     setCurrentCompetition(null);
     setQuestions([]);
     localStorage.removeItem('activeParticipation');
+    sessionStorage.removeItem('competition_state');
+    sessionStorage.removeItem('competition_questions');
   }, []);
 
   // Submit all answers and finish — uses the correctly-configured api instance
