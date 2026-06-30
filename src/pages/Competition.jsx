@@ -276,6 +276,37 @@ const Competition = () => {
     }
   }, [isSubmitting, isAutoSubmitting, stopAndSubmit, navigate]);
 
+  // Anti-cheat system — must be defined before any effects that use it
+  const [warningCount, setWarningCount] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [lastWarning, setLastWarning] = useState({ type: '', count: 0 });
+  const maxWarnings = 3;
+
+  const logActivity = useCallback(async (type, details) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${API_URL}/competition/log-activity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type, timestamp: new Date().toISOString(), details, warningCount })
+      });
+    } catch (err) {
+      console.error('Failed to log activity:', err);
+    }
+  }, [warningCount]);
+
+  const triggerWarning = useCallback((type, message) => {
+    setWarningCount(prev => {
+      const newCount = prev + 1;
+      setLastWarning({ type, count: newCount });
+      if (newCount < maxWarnings) {
+        setShowWarning(true);
+      }
+      logActivity(type, `${message} (warning ${newCount}/${maxWarnings})`);
+      return newCount;
+    });
+  }, [logActivity]);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -336,37 +367,6 @@ const Competition = () => {
       return newFlags;
     });
   }, []);
-
-  // Anti-cheat system
-  const [warningCount, setWarningCount] = useState(0);
-  const [showWarning, setShowWarning] = useState(false);
-  const [lastWarning, setLastWarning] = useState({ type: '', count: 0 });
-  const maxWarnings = 3;
-
-  const logActivity = useCallback(async (type, details) => {
-    try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/competition/log-activity`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type, timestamp: new Date().toISOString(), details, warningCount })
-      });
-    } catch (err) {
-      console.error('Failed to log activity:', err);
-    }
-  }, [warningCount]);
-
-  const triggerWarning = useCallback((type, message) => {
-    setWarningCount(prev => {
-      const newCount = prev + 1;
-      setLastWarning({ type, count: newCount });
-      if (newCount < maxWarnings) {
-        setShowWarning(true);
-      }
-      logActivity(type, `${message} (warning ${newCount}/${maxWarnings})`);
-      return newCount;
-    });
-  }, [logActivity]);
 
   useEffect(() => {
     const handleVisibility = () => {
