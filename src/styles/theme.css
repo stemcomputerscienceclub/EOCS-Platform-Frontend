@@ -13,7 +13,7 @@
 
   /* Background Colors */
   --color-bg-primary: var(--egyptian-dark);
-  --color-bg-secondary: #1e293b;
+  --color-bg-secondary: #342f2c;
   --color-bg-tertiary: rgba(173, 130, 49, 0.1);
 
   /* Border Colors */
@@ -116,11 +116,11 @@ body {
 /* Card Styles */
 .card {
   background: var(--color-bg-secondary);
-  border: 2px solid var(--color-border-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-md);
-  transition: transform var(--transition-normal);
+  border: 1px solid rgba(173, 130, 49, 0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -128,15 +128,16 @@ body {
 .card::before {
   content: '';
   position: absolute;
-  inset: -2px;
-  background: var(--gold-gradient);
-  opacity: 0.1;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(173, 130, 49, 0.06), transparent 60%);
+  border-radius: inherit;
   z-index: -1;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--gold-glow);
+  border-color: rgba(173, 130, 49, 0.3);
+  box-shadow: 0 8px 32px rgba(173, 130, 49, 0.1), 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* Navigation Styles */

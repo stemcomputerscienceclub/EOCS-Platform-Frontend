@@ -82,7 +82,7 @@ const Login = () => {
         </div>
         <div className="card max-w-md w-full p-8">
 
-          <h2 className="section-title text-center glowing-text mb-8">
+          <h2 className="login-form-title text-center glowing-text mb-8">
             Login to Your Account
           </h2>
 

@@ -5,23 +5,254 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-md);
-  background: var(--color-bg-primary);
+  background: #282423;
+  animation: loginFadeIn 0.8s ease-out;
 }
 
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  position: relative;
+@keyframes loginFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ── Floating background symbols ─────────────────────────── */
+.login-page .background-symbols {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   overflow: hidden;
 }
 
-.login-card::before {
+.login-page .bg-symbol {
+  position: absolute;
+  color: var(--egyptian-gold);
+  font-family: 'Times New Roman', serif;
+  font-weight: 400;
+  user-select: none;
+  opacity: 0.08;
+  animation: loginSymbolFloat 24s ease-in-out infinite alternate;
+}
+
+@keyframes loginSymbolFloat {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(10px, -12px) rotate(4deg); }
+}
+
+/* ── Header section (more spacing from form) ─────────────── */
+.login-header-section {
+  margin-bottom: 3rem;
+}
+
+.login-headline {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--egyptian-gold);
+  text-shadow: 0 0 20px rgba(173, 130, 49, 0.3);
+  margin-bottom: 0.75rem;
+  letter-spacing: 2px;
+}
+
+.login-subhead {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: rgba(245, 240, 236, 0.5);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.login-form-title {
+  margin-bottom: 1.5rem !important;
+  font-size: 1.1rem !important;
+  opacity: 1 !important;
+  transform: none !important;
+  padding-bottom: 0 !important;
+}
+
+.login-form-title::after {
+  display: none !important;
+}
+
+/* ── Glass card ──────────────────────────────────────────── */
+.login-card-gloss {
+  background: rgba(63, 57, 56, 0.35) !important;
+  border: 1px solid rgba(173, 130, 49, 0.12) !important;
+  border-radius: 20px !important;
+  padding: 2.5rem !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25) !important;
+  width: 100%;
+  max-width: 440px;
+  animation: loginCardSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-card-gloss:hover {
+  transform: translateY(-6px) !important;
+  border-color: rgba(173, 130, 49, 0.35) !important;
+  box-shadow: 0 16px 48px rgba(173, 130, 49, 0.12), 0 8px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+@keyframes loginCardSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-card-gloss::before {
+  display: none;
+}
+
+/* ── Title glow ──────────────────────────────────────────── */
+.login-page .glowing-text {
+  animation: loginTitleGlow 2s ease-in-out infinite, loginFadeIn 0.6s ease-out 0.3s both;
+}
+
+@keyframes loginTitleGlow {
+  0%, 100% { text-shadow: 0 0 10px var(--egyptian-gold), 0 0 20px rgba(173, 130, 49, 0.3); }
+  50% { text-shadow: 0 0 20px var(--egyptian-gold), 0 0 40px rgba(173, 130, 49, 0.5), 0 0 60px rgba(173, 130, 49, 0.2); }
+}
+
+/* ── Form field staggered entrance ───────────────────────── */
+.login-page .form-group {
+  animation: loginFieldSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.login-page .form-group:nth-child(1) { animation-delay: 0.15s; }
+.login-page .form-group:nth-child(2) { animation-delay: 0.3s; }
+.login-page .form-group:nth-child(3) { animation-delay: 0.45s; }
+.login-page .form-group:nth-child(4) { animation-delay: 0.6s; }
+.login-page .form-group:nth-child(5) { animation-delay: 0.75s; }
+
+@keyframes loginFieldSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Modern inputs ───────────────────────────────────────── */
+.login-page .form-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(40, 36, 35, 0.6) !important;
+  border: 1px solid rgba(173, 130, 49, 0.2) !important;
+  border-radius: 10px !important;
+  color: var(--egyptian-light) !important;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-page .form-input::placeholder {
+  color: rgba(245, 240, 236, 0.35);
+}
+
+.login-page .form-input:focus {
+  outline: none;
+  border-color: var(--egyptian-gold) !important;
+  box-shadow: 0 0 0 3px rgba(173, 130, 49, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.login-page .form-input:hover {
+  border-color: rgba(173, 130, 49, 0.45) !important;
+}
+
+.login-page .form-label {
+  display: block;
+  color: var(--egyptian-gold);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.login-page .form-group {
+  margin-bottom: 1.25rem;
+}
+
+/* ── Pill button with shine ──────────────────────────────── */
+.login-page .btn-primary {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  padding: 0.9rem 2.2rem;
+  border: none;
+  border-radius: 100px !important;
+  background: var(--egyptian-gold) !important;
+  color: #1a1412 !important;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: loginBtnAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  box-shadow: 0 4px 24px rgba(173, 130, 49, 0.4);
+}
+
+.login-page .btn-primary::after {
   content: '';
   position: absolute;
-  inset: -2px;
-  background: var(--color-egyptian-gold);
-  opacity: 0.1;
-  z-index: -1;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-page .btn-primary:hover::after {
+  transform: translateX(100%);
+}
+
+.login-page .btn-primary:hover {
+  background: #c49a3a !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 32px rgba(173, 130, 49, 0.55) !important;
+}
+
+.login-page .btn-primary:active {
+  transform: translateY(-1px) scale(0.98) !important;
+}
+
+.login-page .btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+@keyframes loginBtnAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Forgot password link ────────────────────────────────── */
+.login-page a[href*="forgot"] {
+  color: rgba(173, 130, 49, 0.7) !important;
+  font-size: 0.85rem;
+  transition: color 0.3s ease;
+}
+
+.login-page a[href*="forgot"]:hover {
+  color: var(--egyptian-gold) !important;
 }
 
 /* Home page */

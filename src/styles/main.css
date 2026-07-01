@@ -278,10 +278,7 @@ h6 {
   color: var(--color-egyptian-gold);
 }
 .login-page{
-  margin: auto;
- padding: 20px;
-  max-width: 400px;
-  margin-top: 80px;
+  position: relative;
 }
 /* Loading spinner */
 .loading-spinner {
