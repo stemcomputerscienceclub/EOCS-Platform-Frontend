@@ -412,7 +412,7 @@ const Dashboard = () => {
             <ul className="instruction-list">
               <li className="instruction-item">
                 <span className="instruction-bullet">•</span>
-                <span>Exam Date & Time: Saturday, June 21 at 5:00 PM (Duration: 2 hours)</span>
+                <span>Exam Date & Time: Thursday, July 02 at 5:00 PM (Duration: 2 hours)</span>
               </li>
               <li className="instruction-item">
                 <span className="instruction-bullet">•</span>
