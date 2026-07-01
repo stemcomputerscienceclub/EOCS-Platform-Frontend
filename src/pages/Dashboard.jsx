@@ -78,7 +78,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(null);
   const [competition, setCompetition] = useState({
-    title: "EOCS Programming Competition 2024",
+    title: `EOCS Programming Competition ${new Date().getFullYear()}`,
     startTime: null,
     entranceDeadline: null,
     absoluteEndTime: null,
