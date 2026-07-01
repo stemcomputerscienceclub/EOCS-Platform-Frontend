@@ -323,13 +323,22 @@ const Dashboard = () => {
           </div>
         );
 
-      case 'in_progress_cannot_enter':
+      case 'in_progress_no_entry':
         return (
           <div className="status-card">
             <h3 className="status-title">Entry Period Ended</h3>
             <p className="status-info">
               The competition is in progress but the entry period has ended.
-              Next competition starts at {formatDateTime(competition.nextStartTime)}
+            </p>
+          </div>
+          );
+
+      case 'ended':
+        return (
+          <div className="status-card">
+            <h3 className="status-title">Competition Over</h3>
+            <p className="status-info">
+              The competition has ended. Thank you for participating.
             </p>
           </div>
         );
