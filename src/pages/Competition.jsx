@@ -387,7 +387,7 @@ const Competition = () => {
       const timer = setTimeout(async () => {
         await startCapture();
         setRetryTrigger(t => t + 1);
-      }, 3000);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [hasActiveCompetition, questions, cameraActive, startCapture, retryTrigger]);
@@ -502,8 +502,22 @@ const Competition = () => {
       }
     };
 
+    const handleWindowBlur = () => {
+      // Window lost focus but tab might still be visible
+      // Check after a delay to differentiate from tab switch
+      setTimeout(() => {
+        if (document.hidden) {
+          triggerWarning('tab_switch', 'Tab switched away (window blur)');
+        }
+      }, 500);
+    };
+
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
   }, [triggerWarning]);
 
   useEffect(() => {
@@ -524,18 +538,12 @@ const Competition = () => {
       const key = e.key?.toLowerCase();
       const code = e.code?.toLowerCase();
       if (key === 'printscreen' || code === 'printscreen') {
-        e.preventDefault();
         triggerWarning('screenshot', 'Screenshot attempted');
         return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['digit3', 'digit4', 'digit5', 'keys'].includes(code)) {
-        e.preventDefault();
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['digit3', 'digit4', 'digit5'].includes(code)) {
         triggerWarning('screenshot', 'Screenshot attempted');
         return;
-      }
-      if ((e.altKey || e.metaKey) && (key === 'printscreen' || code === 'printscreen')) {
-        e.preventDefault();
-        triggerWarning('screenshot', 'Screenshot attempted');
       }
     };
 
@@ -548,17 +556,32 @@ const Competition = () => {
       }
     };
 
+    // Window blur with no tab switch suggests screenshot tool or other window
+    let blurTimer = null;
+    const handleWindowBlur = () => {
+      if (blurTimer) return;
+      blurTimer = setTimeout(() => {
+        blurTimer = null;
+        if (!document.hidden) {
+          triggerWarning('screenshot', 'Window blurred - possible screenshot');
+        }
+      }, 300);
+    };
+
     document.addEventListener('copy', handleCopy);
     document.addEventListener('paste', handlePaste);
     document.addEventListener('cut', handleCut);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
     return () => {
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('cut', handleCut);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
+      if (blurTimer) clearTimeout(blurTimer);
     };
   }, [triggerWarning]);
 

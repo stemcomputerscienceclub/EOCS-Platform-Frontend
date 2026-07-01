@@ -232,6 +232,23 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Check camera and microphone permissions before starting
+      try {
+        const testStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 640, height: 480, facingMode: 'user' },
+          audio: true,
+        });
+        testStream.getTracks().forEach(t => t.stop());
+      } catch (permErr) {
+        setError(
+          'Camera and microphone access is required for proctoring. '
+          + 'Please allow camera and microphone access in your browser settings and try again. '
+          + 'Error: ' + permErr.message
+        );
+        setLoading(false);
+        return;
+      }
       
       // First check if we're still allowed to enter
       const configResponse = await fetchWithRetry('/competition/config');
