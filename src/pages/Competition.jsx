@@ -381,6 +381,8 @@ const Competition = () => {
   useEffect(() => {
     if (!hasActiveCompetition || questions.length === 0) return;
 
+    try { document.documentElement.requestFullscreen(); } catch {}
+
     if (cameraActive) {
       cameraWasEverActiveRef.current = true;
       setCameraBlocked(false);
@@ -441,6 +443,7 @@ const Competition = () => {
 
   const handleRetryCamera = useCallback(async () => {
     setRetryingCamera(true);
+    try { await document.documentElement.requestFullscreen(); } catch {}
     await startCapture();
     setRetryTrigger(t => t + 1);
     setTimeout(() => setRetryingCamera(false), 3000);
