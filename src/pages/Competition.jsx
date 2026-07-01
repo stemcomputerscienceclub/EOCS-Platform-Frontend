@@ -20,14 +20,13 @@ const LANGUAGES = [
   { value: 'rust', label: 'Rust' },
 ];
 
-const CodeRunner = ({ value, onChange, questionId }) => {
+const CodeRunner = ({ value, onChange, questionId, language, onLanguageChange }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [output, setOutput] = useState(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
   const [pyodideReady, setPyodideReady] = useState(false);
   const [pyodideLoading, setPyodideLoading] = useState(false);
-  const [language, setLanguage] = useState('python');
   const pyodideRef = useRef(null);
   const outputRef = useRef(null);
   const isPython = language === 'python';
@@ -108,7 +107,7 @@ sys.stderr = sys.__stderr__
         <div className="code-editor-header">
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => onLanguageChange(e.target.value)}
             className="language-select"
           >
             {LANGUAGES.map(l => (
@@ -272,6 +271,15 @@ const Competition = () => {
     }
     return new Set();
   });
+  const [codeLanguages, setCodeLanguages] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return {};
+    const saved = localStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.codeLanguages || {};
+    }
+    return {};
+  });
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
@@ -282,7 +290,8 @@ const Competition = () => {
   const prevAudioActiveRef = useRef(audioActive);
   const restoreDoneRef = useRef(false);
   const cameraWasEverActiveRef = useRef(false);
-  const [cameraRequired, setCameraRequired] = useState(false);
+  const [cameraBlocked, setCameraBlocked] = useState(false);
+  const [cameraBlockReason, setCameraBlockReason] = useState('initial');
   const [retryingCamera, setRetryingCamera] = useState(false);
 
 
@@ -300,10 +309,11 @@ const Competition = () => {
     stopCapture();
     const allAnswers = questions.map(q => ({
       questionId: q._id,
-      answer: answers[q._id] || null
+      answer: answers[q._id] || null,
+      language: q.type === 'code' ? (codeLanguages[q._id] || 'python') : undefined,
     }));
     await submitAllAndFinish(allAnswers, method || 'normal');
-  }, [questions, answers, stopCapture, submitAllAndFinish]);
+  }, [questions, answers, codeLanguages, stopCapture, submitAllAndFinish]);
 
   // Handle submit all — submit + navigate to results
   const handleSubmitAll = useCallback(async () => {
@@ -335,7 +345,7 @@ const Competition = () => {
   });
   const [showWarning, setShowWarning] = useState(false);
   const [lastWarning, setLastWarning] = useState({ type: '', count: 0 });
-  const maxWarnings = 3;
+  const maxWarnings = 5;
 
   const logActivity = useCallback(async (type, details) => {
     try {
@@ -371,12 +381,15 @@ const Competition = () => {
   useEffect(() => {
     if (!hasActiveCompetition || questions.length === 0) return;
 
+    try { document.documentElement.requestFullscreen(); } catch {}
+
     if (cameraActive) {
       cameraWasEverActiveRef.current = true;
+      setCameraBlocked(false);
       return;
     }
 
-    if (!cameraActive && !cameraWasEverActiveRef.current) {
+    if (!cameraWasEverActiveRef.current) {
       const timer = setTimeout(async () => {
         await startCapture();
         setRetryTrigger(t => t + 1);
@@ -384,6 +397,16 @@ const Competition = () => {
       return () => clearTimeout(timer);
     }
   }, [hasActiveCompetition, questions, cameraActive, startCapture, retryTrigger]);
+
+  useEffect(() => {
+    if (!hasActiveCompetition || questions.length === 0) return;
+    if (cameraWasEverActiveRef.current) return;
+    if (retryTrigger === 0) return;
+    if (cameraActive) return;
+
+    setCameraBlocked(true);
+    setCameraBlockReason('initial');
+  }, [cameraActive, retryTrigger, hasActiveCompetition, questions]);
 
   useEffect(() => {
     return () => { cleanupProctoring(); };
@@ -396,7 +419,7 @@ const Competition = () => {
     }
   }, [hasActiveCompetition, navigate, restoring, loading]);
 
-  // Show blocking overlay when camera/audio stops after being active
+  // Show blocking overlay + warning when camera/audio stops after being active
   useEffect(() => {
     const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
     const audioJustStopped = prevAudioActiveRef.current && !audioActive;
@@ -404,20 +427,23 @@ const Competition = () => {
     prevAudioActiveRef.current = audioActive;
 
     if ((cameraJustStopped || audioJustStopped) && cameraWasEverActiveRef.current) {
-      setCameraRequired(true);
+      triggerWarning('camera_off', 'Camera or audio was turned off');
+      setCameraBlocked(true);
+      setCameraBlockReason('stopped');
     }
-  }, [cameraActive, audioActive]);
+  }, [cameraActive, audioActive, triggerWarning]);
 
   // Dismiss blocking overlay when camera becomes active again
   useEffect(() => {
-    if (cameraRequired && cameraActive) {
-      setCameraRequired(false);
+    if (cameraBlocked && cameraActive) {
+      setCameraBlocked(false);
       setRetryingCamera(false);
     }
-  }, [cameraActive, cameraRequired]);
+  }, [cameraActive, cameraBlocked]);
 
   const handleRetryCamera = useCallback(async () => {
     setRetryingCamera(true);
+    try { await document.documentElement.requestFullscreen(); } catch {}
     await startCapture();
     setRetryTrigger(t => t + 1);
     setTimeout(() => setRetryingCamera(false), 3000);
@@ -442,15 +468,23 @@ const Competition = () => {
       currentQuestionIndex,
       flagged: [...flaggedQuestions],
       warningCount,
+      codeLanguages,
     };
     localStorage.setItem('competition_state', JSON.stringify(state));
-  }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, restoring]);
+  }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, codeLanguages, restoring]);
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: answer
+    }));
+  }, []);
+
+  const handleCodeLanguageChange = useCallback((questionId, language) => {
+    setCodeLanguages(prev => ({
+      ...prev,
+      [questionId]: language
     }));
   }, []);
 
@@ -538,6 +572,11 @@ const Competition = () => {
     const handleFullscreen = () => {
       if (!document.fullscreenElement) {
         triggerWarning('fullscreen_exit', 'Exited fullscreen');
+        const reenter = () => {
+          document.documentElement.requestFullscreen().catch(() => {});
+        };
+        document.addEventListener('click', reenter, { once: true });
+        document.addEventListener('keydown', reenter, { once: true });
       }
     };
 
@@ -698,6 +737,8 @@ const Competition = () => {
                   value={answers[currentQuestion._id] || ''}
                   onChange={(value) => handleAnswerChange(currentQuestion._id, value)}
                   questionId={currentQuestion._id}
+                  language={codeLanguages[currentQuestion._id] || 'python'}
+                  onLanguageChange={(lang) => handleCodeLanguageChange(currentQuestion._id, lang)}
                 />
               ) : (
                 <div className="multiple-choice">
@@ -738,13 +779,15 @@ const Competition = () => {
       </main>
 
       {/* Camera Required Blocking Overlay */}
-      {cameraRequired && (
+      {cameraBlocked && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="bg-bg-primary rounded-lg p-8 max-w-md mx-4 text-center">
             <div className="text-4xl mb-4">📷</div>
             <h2 className="text-xl font-bold mb-2">Camera Required</h2>
             <p className="text-text-secondary mb-6">
-              The proctoring camera was turned off. You must re-enable your camera to continue the exam.
+              {cameraBlockReason === 'initial'
+                ? 'Camera is required to take this exam. Please enable your camera to proceed.'
+                : 'The proctoring camera was turned off. You must re-enable your camera to continue the exam.'}
             </p>
             {retryingCamera ? (
               <div className="text-text-secondary">Starting camera...</div>
@@ -772,7 +815,7 @@ const Competition = () => {
       <CustomAlert
         isOpen={showWarning}
         title="Violation Warning"
-        message={`Warning ${lastWarning.count} of ${maxWarnings}: ${lastWarning.type === 'tab_switch' ? 'You left the competition tab.' : lastWarning.type === 'fullscreen_exit' ? 'You exited fullscreen mode.' : lastWarning.type === 'screenshot' ? 'Screenshots are not allowed.' : 'Copy/paste is not allowed.'}\n\nYou have ${maxWarnings - lastWarning.count} remaining leave(s) before your exam is automatically submitted.`}
+        message={`Warning ${lastWarning.count} of ${maxWarnings}: ${lastWarning.type === 'tab_switch' ? 'You left the competition tab.' : lastWarning.type === 'fullscreen_exit' ? 'You exited fullscreen mode.' : lastWarning.type === 'screenshot' ? 'Screenshots are not allowed.' : lastWarning.type === 'camera_off' ? 'Camera or audio was turned off.' : 'Copy/paste is not allowed.'}\n\nYou have ${maxWarnings - lastWarning.count} remaining leave(s) before your exam is automatically submitted.`}
         onConfirm={() => setShowWarning(false)}
         onCancel={() => setShowWarning(false)}
         isLoading={false}

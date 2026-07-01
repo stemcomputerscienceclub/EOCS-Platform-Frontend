@@ -253,7 +253,10 @@ const Dashboard = () => {
         
         // Wait for the competition context to update
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
+        // Enter fullscreen for proctoring
+        try { await document.documentElement.requestFullscreen(); } catch {}
+
         // Navigate to competition page
         navigate('/competition');
       } else {
