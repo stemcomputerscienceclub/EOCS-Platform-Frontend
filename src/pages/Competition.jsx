@@ -20,14 +20,13 @@ const LANGUAGES = [
   { value: 'rust', label: 'Rust' },
 ];
 
-const CodeRunner = ({ value, onChange, questionId }) => {
+const CodeRunner = ({ value, onChange, questionId, language, onLanguageChange }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [output, setOutput] = useState(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
   const [pyodideReady, setPyodideReady] = useState(false);
   const [pyodideLoading, setPyodideLoading] = useState(false);
-  const [language, setLanguage] = useState('python');
   const pyodideRef = useRef(null);
   const outputRef = useRef(null);
   const isPython = language === 'python';
@@ -108,7 +107,7 @@ sys.stderr = sys.__stderr__
         <div className="code-editor-header">
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => onLanguageChange(e.target.value)}
             className="language-select"
           >
             {LANGUAGES.map(l => (
@@ -272,6 +271,15 @@ const Competition = () => {
     }
     return new Set();
   });
+  const [codeLanguages, setCodeLanguages] = useState(() => {
+    if (!localStorage.getItem('activeParticipation')) return {};
+    const saved = localStorage.getItem('competition_state');
+    if (saved) {
+      const state = JSON.parse(saved);
+      return state.codeLanguages || {};
+    }
+    return {};
+  });
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
@@ -300,10 +308,11 @@ const Competition = () => {
     stopCapture();
     const allAnswers = questions.map(q => ({
       questionId: q._id,
-      answer: answers[q._id] || null
+      answer: answers[q._id] || null,
+      language: q.type === 'code' ? (codeLanguages[q._id] || 'python') : undefined,
     }));
     await submitAllAndFinish(allAnswers, method || 'normal');
-  }, [questions, answers, stopCapture, submitAllAndFinish]);
+  }, [questions, answers, codeLanguages, stopCapture, submitAllAndFinish]);
 
   // Handle submit all — submit + navigate to results
   const handleSubmitAll = useCallback(async () => {
@@ -442,15 +451,23 @@ const Competition = () => {
       currentQuestionIndex,
       flagged: [...flaggedQuestions],
       warningCount,
+      codeLanguages,
     };
     localStorage.setItem('competition_state', JSON.stringify(state));
-  }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, restoring]);
+  }, [answers, currentQuestionIndex, flaggedQuestions, warningCount, codeLanguages, restoring]);
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: answer
+    }));
+  }, []);
+
+  const handleCodeLanguageChange = useCallback((questionId, language) => {
+    setCodeLanguages(prev => ({
+      ...prev,
+      [questionId]: language
     }));
   }, []);
 
@@ -698,6 +715,8 @@ const Competition = () => {
                   value={answers[currentQuestion._id] || ''}
                   onChange={(value) => handleAnswerChange(currentQuestion._id, value)}
                   questionId={currentQuestion._id}
+                  language={codeLanguages[currentQuestion._id] || 'python'}
+                  onLanguageChange={(lang) => handleCodeLanguageChange(currentQuestion._id, lang)}
                 />
               ) : (
                 <div className="multiple-choice">
