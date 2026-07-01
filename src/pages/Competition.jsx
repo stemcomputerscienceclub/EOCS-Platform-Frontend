@@ -572,6 +572,7 @@ const Competition = () => {
     const handleFullscreen = () => {
       if (!document.fullscreenElement) {
         triggerWarning('fullscreen_exit', 'Exited fullscreen');
+        document.documentElement.requestFullscreen().catch(() => {});
       }
     };
 
