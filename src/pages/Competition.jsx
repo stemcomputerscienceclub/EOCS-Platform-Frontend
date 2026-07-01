@@ -10,6 +10,16 @@ import LatexRenderer from '../components/LatexRenderer';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+const LANGUAGES = [
+  { value: 'python', label: 'Python' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'java', label: 'Java' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'csharp', label: 'C#' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+];
+
 const CodeRunner = ({ value, onChange, questionId }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [output, setOutput] = useState(null);
@@ -17,8 +27,10 @@ const CodeRunner = ({ value, onChange, questionId }) => {
   const [error, setError] = useState(null);
   const [pyodideReady, setPyodideReady] = useState(false);
   const [pyodideLoading, setPyodideLoading] = useState(false);
+  const [language, setLanguage] = useState('python');
   const pyodideRef = useRef(null);
   const outputRef = useRef(null);
+  const isPython = language === 'python';
 
   useEffect(() => {
     if (pyodideRef.current || pyodideLoading) return;
@@ -94,20 +106,32 @@ sys.stderr = sys.__stderr__
     <div className="code-runner">
       <div className={`code-editor-container card ${isFocused ? 'focused' : ''}`}>
         <div className="code-editor-header">
-          <span className="language-badge">python</span>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="language-select"
+          >
+            {LANGUAGES.map(l => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
           <div className="code-editor-actions">
             {output && (
               <button onClick={handleClear} className="btn btn-sm btn-secondary" style={{marginRight: 8}}>
                 Clear
               </button>
             )}
-            <button
-              onClick={handleRun}
-              disabled={running || !value || (!pyodideReady && !pyodideLoading)}
-              className="btn btn-primary btn-sm"
-            >
-              {pyodideLoading ? 'Loading...' : running ? 'Running...' : 'Run Code'}
-            </button>
+            {isPython ? (
+              <button
+                onClick={handleRun}
+                disabled={running || !value || (!pyodideReady && !pyodideLoading)}
+                className="btn btn-primary btn-sm"
+              >
+                {pyodideLoading ? 'Loading...' : running ? 'Running...' : 'Run Code'}
+              </button>
+            ) : (
+              <span className="text-text-secondary text-sm">Only Python is supported for execution</span>
+            )}
           </div>
         </div>
         <textarea
@@ -121,13 +145,19 @@ sys.stderr = sys.__stderr__
           placeholder="Write your Python code here..."
         />
       </div>
-      {!pyodideReady && !pyodideLoading && !error && (
+      {!isPython && (
+        <div className="code-output">
+          <div className="code-output-header">Note</div>
+          <pre className="code-output-stdout">Only Python is supported for execution. Other languages will not be compiled or run.</pre>
+        </div>
+      )}
+      {isPython && !pyodideReady && !pyodideLoading && !error && (
         <div className="code-output">
           <div className="code-output-header">Status</div>
           <pre className="code-output-stdout">Click "Run Code" to load the Python runner</pre>
         </div>
       )}
-      {pyodideLoading && (
+      {isPython && pyodideLoading && (
         <div className="code-output">
           <div className="code-output-header">Status</div>
           <pre className="code-output-stdout">Loading Python runner (~10MB)...</pre>
@@ -251,6 +281,9 @@ const Competition = () => {
   const prevCameraActiveRef = useRef(cameraActive);
   const prevAudioActiveRef = useRef(audioActive);
   const restoreDoneRef = useRef(false);
+  const cameraWasEverActiveRef = useRef(false);
+  const [cameraRequired, setCameraRequired] = useState(false);
+  const [retryingCamera, setRetryingCamera] = useState(false);
 
 
 
@@ -338,9 +371,14 @@ const Competition = () => {
   useEffect(() => {
     if (!hasActiveCompetition || questions.length === 0) return;
 
-    if (!cameraActive) {
-      const timer = setTimeout(() => {
-        startCapture();
+    if (cameraActive) {
+      cameraWasEverActiveRef.current = true;
+      return;
+    }
+
+    if (!cameraActive && !cameraWasEverActiveRef.current) {
+      const timer = setTimeout(async () => {
+        await startCapture();
         setRetryTrigger(t => t + 1);
       }, 3000);
       return () => clearTimeout(timer);
@@ -358,17 +396,32 @@ const Competition = () => {
     }
   }, [hasActiveCompetition, navigate, restoring, loading]);
 
-  // Give warning when camera or audio is lost unexpectedly
+  // Show blocking overlay when camera/audio stops after being active
   useEffect(() => {
     const cameraJustStopped = prevCameraActiveRef.current && !cameraActive;
     const audioJustStopped = prevAudioActiveRef.current && !audioActive;
     prevCameraActiveRef.current = cameraActive;
     prevAudioActiveRef.current = audioActive;
 
-    if (cameraJustStopped || audioJustStopped) {
-      triggerWarning('proctoring_stopped', 'Camera or audio was turned off');
+    if ((cameraJustStopped || audioJustStopped) && cameraWasEverActiveRef.current) {
+      setCameraRequired(true);
     }
-  }, [cameraActive, audioActive, triggerWarning]);
+  }, [cameraActive, audioActive]);
+
+  // Dismiss blocking overlay when camera becomes active again
+  useEffect(() => {
+    if (cameraRequired && cameraActive) {
+      setCameraRequired(false);
+      setRetryingCamera(false);
+    }
+  }, [cameraActive, cameraRequired]);
+
+  const handleRetryCamera = useCallback(async () => {
+    setRetryingCamera(true);
+    await startCapture();
+    setRetryTrigger(t => t + 1);
+    setTimeout(() => setRetryingCamera(false), 3000);
+  }, [startCapture]);
 
   // Restore saved state on mount
   useEffect(() => {
@@ -439,13 +492,25 @@ const Competition = () => {
       triggerWarning('cut_attempt', 'Cut attempted');
     };
 
+    const handleKeyDown = (e) => {
+      if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
+        triggerWarning('screenshot', 'Screenshot attempted');
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+        triggerWarning('screenshot', 'Screenshot attempted');
+      }
+    };
+
     document.addEventListener('copy', handleCopy);
     document.addEventListener('paste', handlePaste);
     document.addEventListener('cut', handleCut);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('cut', handleCut);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [triggerWarning]);
 
@@ -652,6 +717,29 @@ const Competition = () => {
         )}
       </main>
 
+      {/* Camera Required Blocking Overlay */}
+      {cameraRequired && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-bg-primary rounded-lg p-8 max-w-md mx-4 text-center">
+            <div className="text-4xl mb-4">📷</div>
+            <h2 className="text-xl font-bold mb-2">Camera Required</h2>
+            <p className="text-text-secondary mb-6">
+              The proctoring camera was turned off. You must re-enable your camera to continue the exam.
+            </p>
+            {retryingCamera ? (
+              <div className="text-text-secondary">Starting camera...</div>
+            ) : (
+              <button
+                onClick={handleRetryCamera}
+                className="btn btn-primary"
+              >
+                Retry Camera
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <ProctoringOverlay
         webcamRef={webcamRef}
         cameraActive={cameraActive}
@@ -664,7 +752,7 @@ const Competition = () => {
       <CustomAlert
         isOpen={showWarning}
         title="Violation Warning"
-        message={`Warning ${lastWarning.count} of ${maxWarnings}: ${lastWarning.type === 'tab_switch' ? 'You left the competition tab.' : lastWarning.type === 'fullscreen_exit' ? 'You exited fullscreen mode.' : 'Copy/paste is not allowed.'}\n\nYou have ${maxWarnings - lastWarning.count} remaining leave(s) before your exam is automatically submitted.`}
+        message={`Warning ${lastWarning.count} of ${maxWarnings}: ${lastWarning.type === 'tab_switch' ? 'You left the competition tab.' : lastWarning.type === 'fullscreen_exit' ? 'You exited fullscreen mode.' : lastWarning.type === 'screenshot' ? 'Screenshots are not allowed.' : 'Copy/paste is not allowed.'}\n\nYou have ${maxWarnings - lastWarning.count} remaining leave(s) before your exam is automatically submitted.`}
         onConfirm={() => setShowWarning(false)}
         onCancel={() => setShowWarning(false)}
         isLoading={false}
