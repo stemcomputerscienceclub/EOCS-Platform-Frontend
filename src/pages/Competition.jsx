@@ -493,11 +493,29 @@ const Competition = () => {
     };
 
     const handleKeyDown = (e) => {
-      if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
+      const key = e.key?.toLowerCase();
+      const code = e.code?.toLowerCase();
+      if (key === 'printscreen' || code === 'printscreen') {
+        e.preventDefault();
         triggerWarning('screenshot', 'Screenshot attempted');
         return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5', 's'].includes(key)) {
+        e.preventDefault();
+        triggerWarning('screenshot', 'Screenshot attempted');
+        return;
+      }
+      if ((e.altKey || e.metaKey) && (key === 'printscreen' || code === 'printscreen')) {
+        e.preventDefault();
+        triggerWarning('screenshot', 'Screenshot attempted');
+      }
+    };
+
+    // Some browsers fire keyup for PrintScreen but not keydown
+    const handleKeyUp = (e) => {
+      const key = e.key?.toLowerCase();
+      const code = e.code?.toLowerCase();
+      if (key === 'printscreen' || code === 'printscreen') {
         triggerWarning('screenshot', 'Screenshot attempted');
       }
     };
@@ -506,11 +524,13 @@ const Competition = () => {
     document.addEventListener('paste', handlePaste);
     document.addEventListener('cut', handleCut);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
     return () => {
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('paste', handlePaste);
       document.removeEventListener('cut', handleCut);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
   }, [triggerWarning]);
 
