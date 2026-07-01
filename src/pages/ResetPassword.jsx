@@ -56,7 +56,7 @@ const ResetPassword = () => {
         ) : (
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-error bg-opacity-10 border border-error text-error px-4 py-3 rounded-md">
+              <div style={{ background: 'rgba(220, 38, 38, 0.1)', border: '2px solid rgb(220, 38, 38)', color: 'rgb(254, 226, 226)', padding: '0.75rem 1rem', borderRadius: '0.375rem' }}>
                 {error}
               </div>
             )}

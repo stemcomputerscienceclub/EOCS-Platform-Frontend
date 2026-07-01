@@ -244,41 +244,33 @@ const Competition = () => {
 
   const [restoring, setRestoring] = useState(true);
 
+  const parseSavedState = (key, fallback) => {
+    try {
+      const saved = localStorage.getItem('competition_state');
+      if (!saved) return fallback;
+      const state = JSON.parse(saved);
+      return state[key] ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const [answers, setAnswers] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return {};
-    const saved = localStorage.getItem('competition_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.answers || {};
-    }
-    return {};
+    return parseSavedState('answers', {});
   });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return 0;
-    const saved = localStorage.getItem('competition_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.currentQuestionIndex || 0;
-    }
-    return 0;
+    return parseSavedState('currentQuestionIndex', 0);
   });
   const [flaggedQuestions, setFlaggedQuestions] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return new Set();
-    const saved = localStorage.getItem('competition_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return new Set(state.flagged || []);
-    }
-    return new Set();
+    const flagged = parseSavedState('flagged', []);
+    return new Set(flagged);
   });
   const [codeLanguages, setCodeLanguages] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return {};
-    const saved = localStorage.getItem('competition_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.codeLanguages || {};
-    }
-    return {};
+    return parseSavedState('codeLanguages', {});
   });
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -309,7 +301,7 @@ const Competition = () => {
     stopCapture();
     const allAnswers = questions.map(q => ({
       questionId: q._id,
-      answer: answers[q._id] || null,
+      answer: answers[q._id] ?? null,
       language: q.type === 'code' ? (codeLanguages[q._id] || 'python') : undefined,
     }));
     await submitAllAndFinish(allAnswers, method || 'normal');
@@ -336,41 +328,43 @@ const Competition = () => {
   // Anti-cheat system — must be defined before any effects that use it
   const [warningCount, setWarningCount] = useState(() => {
     if (!localStorage.getItem('activeParticipation')) return 0;
-    const saved = localStorage.getItem('competition_state');
-    if (saved) {
-      const state = JSON.parse(saved);
-      return state.warningCount || 0;
-    }
-    return 0;
+    return parseSavedState('warningCount', 0);
   });
   const [showWarning, setShowWarning] = useState(false);
   const [lastWarning, setLastWarning] = useState({ type: '', count: 0 });
   const maxWarnings = 5;
 
-  const logActivity = useCallback(async (type, details) => {
+  const lastWarningTypeRef = useRef('');
+
+  const logActivity = useCallback(async (type, details, count) => {
     try {
       const token = localStorage.getItem('token');
       await fetch(`${API_URL}/competition/log-activity`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type, timestamp: new Date().toISOString(), details, warningCount })
+        body: JSON.stringify({ type, timestamp: new Date().toISOString(), details, warningCount: count })
       });
     } catch (err) {
       console.error('Failed to log activity:', err);
     }
-  }, [warningCount]);
+  }, []);
 
   const triggerWarning = useCallback((type, message) => {
+    lastWarningTypeRef.current = type;
     setWarningCount(prev => {
       const newCount = prev + 1;
-      setLastWarning({ type, count: newCount });
-      if (newCount < maxWarnings) {
-        setShowWarning(true);
-      }
-      logActivity(type, `${message} (warning ${newCount}/${maxWarnings})`);
+      logActivity(type, `${message} (warning ${newCount}/${maxWarnings})`, newCount);
       return newCount;
     });
   }, [logActivity]);
+
+  useEffect(() => {
+    if (warningCount === 0) return;
+    setLastWarning({ type: lastWarningTypeRef.current, count: warningCount });
+    if (warningCount < maxWarnings) {
+      setShowWarning(true);
+    }
+  }, [warningCount]);
 
   useEffect(() => {
     if (!user) {
@@ -415,7 +409,7 @@ const Competition = () => {
   useEffect(() => {
     if (restoring || loading) return;
     if (!hasActiveCompetition && !navigatingToResults.current) {
-      navigate('/dashboard');
+      navigate('/results');
     }
   }, [hasActiveCompetition, navigate, restoring, loading]);
 
@@ -534,7 +528,7 @@ const Competition = () => {
         triggerWarning('screenshot', 'Screenshot attempted');
         return;
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5', 's'].includes(key)) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['digit3', 'digit4', 'digit5', 'keys'].includes(code)) {
         e.preventDefault();
         triggerWarning('screenshot', 'Screenshot attempted');
         return;
@@ -613,7 +607,7 @@ const Competition = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-primary">
         <div className="card">
-          <h2 className="section-title text-error">{error}</h2>
+          <h2 className="section-title" style={{ color: 'rgb(220, 38, 38)' }}>{error}</h2>
           <button onClick={() => navigate('/dashboard')} className="btn btn-secondary animated-link">
             Return to Dashboard
           </button>
@@ -693,7 +687,7 @@ const Competition = () => {
               </div>
               <div className="stat-item">
                 <span className="stat-label">Leaves Left</span>
-                <span className={`stat-value ${maxWarnings - warningCount <= 1 ? 'text-error' : ''}`}>{Math.max(0, maxWarnings - warningCount)}</span>
+                <span className="stat-value" style={maxWarnings - warningCount <= 1 ? { color: 'rgb(220, 38, 38)' } : undefined}>{Math.max(0, maxWarnings - warningCount)}</span>
               </div>
             </div>
           </div>
@@ -780,17 +774,25 @@ const Competition = () => {
 
       {/* Camera Required Blocking Overlay */}
       {cameraBlocked && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="bg-bg-primary rounded-lg p-8 max-w-md mx-4 text-center">
-            <div className="text-4xl mb-4">📷</div>
-            <h2 className="text-xl font-bold mb-2">Camera Required</h2>
-            <p className="text-text-secondary mb-6">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.8)',
+        }}>
+          <div className="card" style={{ maxWidth: '28rem', width: '90%', textAlign: 'center' }}>
+            <div style={{ fontSize: '2.25rem', marginBottom: '1rem' }}>📷</div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#d4af37' }}>Camera Required</h2>
+            <p style={{ color: '#b0b0b0', marginBottom: '1.5rem' }}>
               {cameraBlockReason === 'initial'
                 ? 'Camera is required to take this exam. Please enable your camera to proceed.'
                 : 'The proctoring camera was turned off. You must re-enable your camera to continue the exam.'}
             </p>
             {retryingCamera ? (
-              <div className="text-text-secondary">Starting camera...</div>
+              <div style={{ color: '#b0b0b0' }}>Starting camera...</div>
             ) : (
               <button
                 onClick={handleRetryCamera}

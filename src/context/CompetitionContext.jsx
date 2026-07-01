@@ -67,7 +67,7 @@ export const CompetitionProvider = ({ children }) => {
         return false;
       }
 
-      if (statusResponse.data.status === 'active' || statusResponse.data.status === 'in_progress') {
+      if (statusResponse.data.status === 'in_progress') {
         // Ensure activeParticipation is set in localStorage even on browser reopen
         if (!activeParticipation && statusResponse.data.startTime) {
           localStorage.setItem('activeParticipation', 'restored');

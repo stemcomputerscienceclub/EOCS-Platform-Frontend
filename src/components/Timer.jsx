@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const Timer = ({ endTime, onTimeUp }) => {
   const [timeLeft, setTimeLeft] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const onTimeUpRef = useRef(onTimeUp);
+  onTimeUpRef.current = onTimeUp;
 
   const formatTime = useCallback((milliseconds) => {
     if (milliseconds <= 0) return 'Time Up!';
@@ -28,7 +29,7 @@ const Timer = ({ endTime, onTimeUp }) => {
 
       if (remaining <= 0) {
         setTimeLeft('Time Up!');
-        onTimeUp?.();
+        onTimeUpRef.current?.();
         return;
       }
 
@@ -46,7 +47,7 @@ const Timer = ({ endTime, onTimeUp }) => {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [endTime, formatTime, onTimeUp]);
+  }, [endTime, formatTime]);
 
   return (
     <div className="timer">

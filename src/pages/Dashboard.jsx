@@ -542,7 +542,7 @@ const Dashboard = () => {
 
       {/* Footer */}
       <div className="dashboard-footer">
-        © 2026 EOCS Competition Platform. All rights reserved.
+        © {new Date().getFullYear()} EOCS Competition Platform. All rights reserved.
       </div>
     </div>
   );

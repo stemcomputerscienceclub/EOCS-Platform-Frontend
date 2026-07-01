@@ -12,8 +12,9 @@ export default function Navigation() {
     navigate('/');
   };
 
-  // Don't show navigation on login page
-  if ('/' === location.pathname) {
+  // Don't show navigation on public pages
+  const publicPaths = ['/', '/forgot-password'];
+  if (publicPaths.includes(location.pathname) || location.pathname.startsWith('/reset-password/')) {
     return null;
   }
 
