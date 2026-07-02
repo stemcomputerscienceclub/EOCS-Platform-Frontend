@@ -42,6 +42,7 @@ export const CompetitionProvider = ({ children }) => {
   const [questions, setQuestions] = useState([]);
   const [lastStatusCheck, setLastStatusCheck] = useState(null);
   const [competitionLength, setCompetitionLength] = useState(null);
+  const [absoluteEndTime, setAbsoluteEndTime] = useState(null);
 
   // Memoize the status check function
   const checkStatus = useCallback(async () => {
@@ -67,6 +68,7 @@ export const CompetitionProvider = ({ children }) => {
         setCurrentCompetition(null);
         setQuestions([]);
         setCompetitionLength(configResponse.data?.data?.competitionLength || null);
+        setAbsoluteEndTime(configResponse.data?.data?.absoluteEndTime || null);
         return false;
       }
 
@@ -88,6 +90,9 @@ export const CompetitionProvider = ({ children }) => {
       // Store the competition length from the server
       if (configResponse.data.success && configResponse.data.data.competitionLength) {
         setCompetitionLength(configResponse.data.data.competitionLength);
+      }
+      if (configResponse.data.success && configResponse.data.data.absoluteEndTime) {
+        setAbsoluteEndTime(configResponse.data.data.absoluteEndTime);
       }
 
       setLastStatusCheck(statusResponse.data);
@@ -251,7 +256,8 @@ export const CompetitionProvider = ({ children }) => {
     submitAllAndFinish,
     hasActiveCompetition,
     questions,
-    competitionLength
+    competitionLength,
+    absoluteEndTime
   }), [
     isConnected,
     connectionError,
@@ -266,7 +272,8 @@ export const CompetitionProvider = ({ children }) => {
     submitAllAndFinish,
     hasActiveCompetition,
     questions,
-    competitionLength
+    competitionLength,
+    absoluteEndTime
   ]);
 
   return (

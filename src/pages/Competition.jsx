@@ -234,6 +234,7 @@ const Competition = () => {
     submitAnswer,
     hasActiveCompetition,
     competitionLength,
+    absoluteEndTime,
     submitAllAndFinish
   } = useCompetition();
 
@@ -292,12 +293,20 @@ const Competition = () => {
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
-    if (currentCompetition?.endTime) return new Date(currentCompetition.endTime).getTime();
-    if (!currentCompetition?.startTime || !competitionLength) return null;
-    const startTime = new Date(currentCompetition.startTime).getTime();
-    const duration = competitionLength * 1000; // Convert seconds to milliseconds
-    return startTime + duration;
-  }, [currentCompetition?.startTime, currentCompetition?.endTime, competitionLength]);
+    if (!currentCompetition?.startTime && !currentCompetition?.endTime) return null;
+
+    const durationEndTime = currentCompetition?.startTime && competitionLength
+      ? new Date(currentCompetition.startTime).getTime() + (competitionLength * 1000)
+      : null;
+
+    const serverEndTime = absoluteEndTime ? new Date(absoluteEndTime).getTime() : null;
+
+    if (durationEndTime && serverEndTime) {
+      return Math.min(durationEndTime, serverEndTime);
+    }
+
+    return durationEndTime || serverEndTime || (currentCompetition?.endTime ? new Date(currentCompetition.endTime).getTime() : null);
+  }, [currentCompetition?.startTime, currentCompetition?.endTime, competitionLength, absoluteEndTime]);
 
   useEffect(() => {
     if (!endTime) {
