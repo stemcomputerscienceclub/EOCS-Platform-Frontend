@@ -190,6 +190,9 @@ export const CompetitionProvider = ({ children }) => {
         setQuestions(response.data.questions);
         localStorage.setItem('competition_questions', JSON.stringify(response.data.questions));
         setCurrentCompetition(response.data.participation);
+        if (response.data.absoluteEndTime) {
+          setAbsoluteEndTime(response.data.absoluteEndTime);
+        }
         setHasActiveCompetition(true);
         localStorage.setItem('activeParticipation', response.data.participation.id);
         return response.data;
