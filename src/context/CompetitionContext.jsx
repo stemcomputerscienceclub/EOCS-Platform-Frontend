@@ -57,13 +57,16 @@ export const CompetitionProvider = ({ children }) => {
       ]);
 
       if (statusResponse.data.status === 'completed' || 
-          (activeParticipation && statusResponse.data.status === 'not_started')) {
+          (activeParticipation && statusResponse.data.status === 'not_started') ||
+          configResponse.data?.data?.status === 'ended' ||
+          (configResponse.data?.data?.absoluteEndTime && new Date(configResponse.data.data.currentServerTime || Date.now()) >= new Date(configResponse.data.data.absoluteEndTime))) {
         localStorage.removeItem('activeParticipation');
         localStorage.removeItem('competition_state');
         localStorage.removeItem('competition_questions');
         setHasActiveCompetition(false);
         setCurrentCompetition(null);
         setQuestions([]);
+        setCompetitionLength(configResponse.data?.data?.competitionLength || null);
         return false;
       }
 
