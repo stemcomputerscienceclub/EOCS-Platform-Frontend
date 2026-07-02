@@ -20,7 +20,7 @@ const LANGUAGES = [
   { value: 'rust', label: 'Rust' },
 ];
 
-const CodeRunner = ({ value, onChange, questionId, language, onLanguageChange }) => {
+const CodeRunner = ({ value, onChange, questionId, language, onLanguageChange, disabled = false }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [output, setOutput] = useState(null);
   const [running, setRunning] = useState(false);
@@ -123,7 +123,7 @@ sys.stderr = sys.__stderr__
             {isPython ? (
               <button
                 onClick={handleRun}
-                disabled={running || !value || (!pyodideReady && !pyodideLoading)}
+                disabled={disabled || running || !value || (!pyodideReady && !pyodideLoading)}
                 className="btn btn-primary btn-sm"
               >
                 {pyodideLoading ? 'Loading...' : running ? 'Running...' : 'Run Code'}
@@ -136,6 +136,7 @@ sys.stderr = sys.__stderr__
         <textarea
           className="code-editor"
           value={value}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -225,10 +226,10 @@ const CustomAlert = ({ isOpen, title, message, onConfirm, onCancel, isLoading, c
 const Competition = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { 
-    currentCompetition, 
-    loading, 
-    error, 
+  const {
+    currentCompetition,
+    loading,
+    error,
     questions,
     submitAnswer,
     hasActiveCompetition,
@@ -277,6 +278,7 @@ const Competition = () => {
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
+  const [isTimeUp, setIsTimeUp] = useState(false);
   const navigatingToResults = useRef(false);
   const prevCameraActiveRef = useRef(cameraActive);
   const prevAudioActiveRef = useRef(audioActive);
@@ -290,11 +292,27 @@ const Competition = () => {
 
   // Memoize the end time calculation
   const endTime = useMemo(() => {
+    if (currentCompetition?.endTime) return new Date(currentCompetition.endTime).getTime();
     if (!currentCompetition?.startTime || !competitionLength) return null;
     const startTime = new Date(currentCompetition.startTime).getTime();
     const duration = competitionLength * 1000; // Convert seconds to milliseconds
     return startTime + duration;
-  }, [currentCompetition?.startTime, competitionLength]);
+  }, [currentCompetition?.startTime, currentCompetition?.endTime, competitionLength]);
+
+  useEffect(() => {
+    if (!endTime) {
+      setIsTimeUp(false);
+      return;
+    }
+
+    const updateTimeState = () => {
+      setIsTimeUp(Date.now() >= endTime);
+    };
+
+    updateTimeState();
+    const timer = setInterval(updateTimeState, 1000);
+    return () => clearInterval(timer);
+  }, [endTime]);
 
   // Stop camera + submit answers
   const stopAndSubmit = useCallback(async (method) => {
@@ -469,21 +487,24 @@ const Competition = () => {
 
   // Handle answer changes
   const handleAnswerChange = useCallback((questionId, answer) => {
+    if (isTimeUp) return;
     setAnswers(prev => ({
       ...prev,
       [questionId]: answer
     }));
-  }, []);
+  }, [isTimeUp]);
 
   const handleCodeLanguageChange = useCallback((questionId, language) => {
+    if (isTimeUp) return;
     setCodeLanguages(prev => ({
       ...prev,
       [questionId]: language
     }));
-  }, []);
+  }, [isTimeUp]);
 
   // Handle flagging questions
   const toggleFlag = useCallback((questionId) => {
+    if (isTimeUp) return;
     setFlaggedQuestions(prev => {
       const newFlags = new Set(prev);
       if (newFlags.has(questionId)) {
@@ -493,7 +514,12 @@ const Competition = () => {
       }
       return newFlags;
     });
-  }, []);
+  }, [isTimeUp]);
+
+  useEffect(() => {
+    if (!isTimeUp || isSubmitting || isAutoSubmitting || navigatingToResults.current) return;
+    handleSubmitAll();
+  }, [isTimeUp, isSubmitting, isAutoSubmitting, handleSubmitAll]);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -654,6 +680,7 @@ const Competition = () => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  const isExamLocked = isSubmitting || isAutoSubmitting;
 
   return (
     <div className="competition-container">
@@ -671,10 +698,11 @@ const Competition = () => {
               {questions.map((q, index) => (
                 <button
                   key={q._id}
-                  onClick={() => setCurrentQuestionIndex(index)}
+                  onClick={() => { if (!isTimeUp) setCurrentQuestionIndex(index); }}
+                  disabled={isTimeUp}
                   className={`question-button ${
-                    answers[q._id] ? 'answered' : ''} 
-                    ${flaggedQuestions.has(q._id) ? 'flagged' : ''} 
+                    answers[q._id] ? 'answered' : ''}
+                    ${flaggedQuestions.has(q._id) ? 'flagged' : ''}
                     ${currentQuestionIndex === index ? 'current' : ''}`}
                   title={`Question ${index + 1}: ${q.subject} - ${q.difficulty}`}
                 >
@@ -716,10 +744,10 @@ const Competition = () => {
           </div>
         </div>
 
-        <button 
+        <button
           onClick={() => setShowSubmitConfirm(true)}
           className="btn btn-primary submit-button"
-          disabled={isSubmitting || isAutoSubmitting}
+          disabled={isExamLocked}
         >
           {isSubmitting ? 'Submitting...' : 'Submit All Answers'}
         </button>
@@ -740,6 +768,7 @@ const Competition = () => {
               </div>
               <button
                 onClick={() => toggleFlag(currentQuestion._id)}
+                disabled={isTimeUp}
                 className={`flag-button ${flaggedQuestions.has(currentQuestion._id) ? 'flagged' : ''}`}
               >
                 {flaggedQuestions.has(currentQuestion._id) ? 'Unflag' : 'Flag'} Question
@@ -748,7 +777,7 @@ const Competition = () => {
 
             <div className="question-content">
               <LatexRenderer html={currentQuestion.text} className="question-text" as="div" />
-              
+
               {currentQuestion.type === 'code' ? (
                 <CodeRunner
                   value={answers[currentQuestion._id] || ''}
@@ -756,6 +785,7 @@ const Competition = () => {
                   questionId={currentQuestion._id}
                   language={codeLanguages[currentQuestion._id] || 'python'}
                   onLanguageChange={(lang) => handleCodeLanguageChange(currentQuestion._id, lang)}
+                  disabled={isTimeUp}
                 />
               ) : (
                 <div className="multiple-choice">
@@ -766,6 +796,7 @@ const Competition = () => {
                         name={`question-${currentQuestion._id}`}
                         value={option}
                         checked={answers[currentQuestion._id] === option}
+                        disabled={isTimeUp}
                         onChange={() => handleAnswerChange(currentQuestion._id, option)}
                       />
                       <LatexRenderer html={option} className="option-text" />
@@ -778,14 +809,14 @@ const Competition = () => {
             <div className="question-footer">
               <button
                 onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                disabled={currentQuestionIndex === 0}
+                disabled={currentQuestionIndex === 0 || isTimeUp}
                 className="btn btn-secondary"
               >
                 Previous
               </button>
               <button
                 onClick={() => setCurrentQuestionIndex(Math.min(questions.length - 1, currentQuestionIndex + 1))}
-                disabled={currentQuestionIndex === questions.length - 1}
+                disabled={currentQuestionIndex === questions.length - 1 || isTimeUp}
                 className="btn btn-secondary"
               >
                 Next
