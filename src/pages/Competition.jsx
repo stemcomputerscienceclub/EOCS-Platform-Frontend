@@ -234,6 +234,7 @@ const Competition = () => {
     submitAnswer,
     hasActiveCompetition,
     competitionLength,
+    entranceDeadline,
     absoluteEndTime,
     submitAllAndFinish
   } = useCompetition();
@@ -299,14 +300,18 @@ const Competition = () => {
       ? new Date(currentCompetition.startTime).getTime() + (competitionLength * 1000)
       : null;
 
+    const entranceCloseTime = entranceDeadline ? new Date(entranceDeadline).getTime() : null;
+
     const serverEndTime = absoluteEndTime ? new Date(absoluteEndTime).getTime() : null;
 
-    if (durationEndTime && serverEndTime) {
-      return Math.min(durationEndTime, serverEndTime);
+    const validTimes = [durationEndTime, entranceCloseTime, serverEndTime].filter(Boolean);
+
+    if (validTimes.length > 0) {
+      return Math.min(...validTimes);
     }
 
-    return durationEndTime || serverEndTime || (currentCompetition?.endTime ? new Date(currentCompetition.endTime).getTime() : null);
-  }, [currentCompetition?.startTime, currentCompetition?.endTime, competitionLength, absoluteEndTime]);
+    return currentCompetition?.endTime ? new Date(currentCompetition.endTime).getTime() : null;
+  }, [currentCompetition?.startTime, currentCompetition?.endTime, competitionLength, entranceDeadline, absoluteEndTime]);
 
   useEffect(() => {
     if (!endTime) {

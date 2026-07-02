@@ -42,6 +42,7 @@ export const CompetitionProvider = ({ children }) => {
   const [questions, setQuestions] = useState([]);
   const [lastStatusCheck, setLastStatusCheck] = useState(null);
   const [competitionLength, setCompetitionLength] = useState(null);
+  const [entranceDeadline, setEntranceDeadline] = useState(null);
   const [absoluteEndTime, setAbsoluteEndTime] = useState(null);
 
   // Memoize the status check function
@@ -68,6 +69,7 @@ export const CompetitionProvider = ({ children }) => {
         setCurrentCompetition(null);
         setQuestions([]);
         setCompetitionLength(configResponse.data?.data?.competitionLength || null);
+        setEntranceDeadline(configResponse.data?.data?.entranceDeadline || null);
         setAbsoluteEndTime(configResponse.data?.data?.absoluteEndTime || null);
         return false;
       }
@@ -90,6 +92,9 @@ export const CompetitionProvider = ({ children }) => {
       // Store the competition length from the server
       if (configResponse.data.success && configResponse.data.data.competitionLength) {
         setCompetitionLength(configResponse.data.data.competitionLength);
+      }
+      if (configResponse.data.success && configResponse.data.data.entranceDeadline) {
+        setEntranceDeadline(configResponse.data.data.entranceDeadline);
       }
       if (configResponse.data.success && configResponse.data.data.absoluteEndTime) {
         setAbsoluteEndTime(configResponse.data.data.absoluteEndTime);
@@ -260,6 +265,7 @@ export const CompetitionProvider = ({ children }) => {
     hasActiveCompetition,
     questions,
     competitionLength,
+    entranceDeadline,
     absoluteEndTime
   }), [
     isConnected,
@@ -276,6 +282,7 @@ export const CompetitionProvider = ({ children }) => {
     hasActiveCompetition,
     questions,
     competitionLength,
+    entranceDeadline,
     absoluteEndTime
   ]);
 
