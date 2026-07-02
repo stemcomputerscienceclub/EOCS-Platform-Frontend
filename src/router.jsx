@@ -2,8 +2,6 @@ import { createBrowserRouter, createRoutesFromElements, Route } from 'react-rout
 import { UNSAFE_NavigationContext as NavigationContext } from 'react-router-dom';
 import App from './App';
 import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Competition from './pages/Competition';
 import Results from './pages/Results';
@@ -22,14 +20,6 @@ const router = createBrowserRouter(
             <Login />
           </PublicRoute>
         }
-      />
-      <Route
-        path="forgot-password"
-        element={<ForgotPassword />}
-      />
-      <Route
-        path="reset-password/:token"
-        element={<ResetPassword />}
       />
       <Route
         path="dashboard"

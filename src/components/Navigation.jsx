@@ -13,8 +13,7 @@ export default function Navigation() {
   };
 
   // Don't show navigation on public pages
-  const publicPaths = ['/', '/forgot-password'];
-  if (publicPaths.includes(location.pathname) || location.pathname.startsWith('/reset-password/')) {
+  if (location.pathname === '/') {
     return null;
   }
 
